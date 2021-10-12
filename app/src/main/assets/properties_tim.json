@@ -1,0 +1,58 @@
+{
+  "tcu": "TERRARIUM",
+  "eeprom_write_count": 2,
+  "nr_of_timers": 18,
+  "nr_of_programs": 2,
+  "devices": [
+    {
+      "device": "light1",
+      "nr_of_timers": 1,
+      "lc_counted": "false"
+    },
+    {
+      "device": "light2",
+      "nr_of_timers": 1,
+      "lc_counted": "false"
+    },
+    {
+      "device": "light3",
+      "nr_of_timers": 1,
+      "lc_counted": "false"
+    },
+    {
+      "device": "light4",
+      "nr_of_timers": 1,
+      "lc_counted": "false"
+    },
+    {
+      "device": "uvlight",
+      "nr_of_timers": 1,
+      "lc_counted": "true"
+    },
+    {
+      "device": "fan_in",
+      "nr_of_timers": 3,
+      "lc_counted": "false"
+    },
+    {
+      "device": "fan_out",
+      "nr_of_timers": 3,
+      "lc_counted": "false"
+    },
+    {
+      "device": "sprayer",
+      "nr_of_timers": 1,
+      "lc_counted": "false"
+    },
+    {
+      "device": "mist",
+      "nr_of_timers": 3,
+      "lc_counted": "false"
+    },
+    {
+      "device": "pump",
+      "nr_of_timers": 3,
+      "lc_counted": "false"
+    }
+  ]
+}
