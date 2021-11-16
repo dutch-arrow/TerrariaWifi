@@ -30,6 +30,11 @@
       "lc_counted": "true"
     },
     {
+      "device": "light6",
+      "nr_of_timers": 1,
+      "lc_counted": "false"
+    },
+    {
       "device": "fan_in",
       "nr_of_timers": 3,
       "lc_counted": "false"

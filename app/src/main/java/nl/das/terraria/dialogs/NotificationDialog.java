@@ -8,7 +8,7 @@ import androidx.appcompat.app.AlertDialog;
 
 public class NotificationDialog implements DialogInterface.OnClickListener {
 
-    private AlertDialog dialog;
+    private final AlertDialog dialog;
     public boolean done = false;
 
     public NotificationDialog(Context context, String title, String message) {

@@ -23,17 +23,20 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONObject;
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import nl.das.terraria.R;
 import nl.das.terraria.RequestQueueSingleton;
@@ -44,6 +47,7 @@ import nl.das.terraria.dialogs.WaitSpinner;
 import nl.das.terraria.json.Action;
 import nl.das.terraria.json.Device;
 import nl.das.terraria.json.Ruleset;
+import nl.das.terraria.json.Timer;
 
 public class RulesetFragment extends Fragment {
 
@@ -54,9 +58,9 @@ public class RulesetFragment extends Fragment {
     private int currentRsNr;
     private int currentRlNr;
 
-    private int[] lastPos = new int[4];
-    private boolean[] userSelect = new boolean[4];
-    private String[] devSpinner = new String[10];
+    private final int[] lastPos = new int[4];
+    private final boolean[] userSelect = new boolean[4];
+    private final String[] devSpinner = new String[10];
 
     // Ruleset
     private Button btnSave;
@@ -70,12 +74,12 @@ public class RulesetFragment extends Fragment {
     private EditText edtValueBelow;
     private EditText edtValueAbove;
     private List<String> spn_items;
-    private Spinner[] spnDevice = new Spinner[4];
-    private RadioGroup[] rbgPeriod = new RadioGroup[4];
-    private RadioButton[] rbnActionIdeal = new RadioButton[4];
-    private RadioButton[] rbnActionPeriod = new RadioButton[4];
-    private EditText[] edtActionPeriod = new EditText[4];
-    private TextView[] tvwSeconds = new TextView[4];
+    private final Spinner[] spnDevice = new Spinner[4];
+    private final RadioGroup[] rbgPeriod = new RadioGroup[4];
+    private final RadioButton[] rbnActionIdeal = new RadioButton[4];
+    private final RadioButton[] rbnActionPeriod = new RadioButton[4];
+    private final EditText[] edtActionPeriod = new EditText[4];
+    private final TextView[] tvwSeconds = new TextView[4];
     private WaitSpinner wait;
 
     public RulesetFragment() {
@@ -103,9 +107,9 @@ public class RulesetFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.ruleset_frg, container, false);
-        imm = (InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        btnSave = (Button) view.findViewById(R.id.rs_btnSave);
+        btnSave = view.findViewById(R.id.rs_btnSave);
         btnSave.setOnClickListener(v -> {
             btnSave.requestFocusFromTouch();
             imm.hideSoftInputFromWindow(btnSave.getWindowToken(), 0);
@@ -113,14 +117,14 @@ public class RulesetFragment extends Fragment {
             saveRuleset();
             btnSave.setEnabled(false);
         });
-        btnRefresh = (Button) view.findViewById(R.id.rs_btnRefresh);
+        btnRefresh = view.findViewById(R.id.rs_btnRefresh);
         btnRefresh.setOnClickListener(v -> {
             imm.hideSoftInputFromWindow(btnRefresh.getWindowToken(), 0);
             Log.i("Terraria", "Refresh");
             getRuleset();
             btnSave.setEnabled(false);
         });
-        swActive = ((SwitchCompat) view.findViewById(R.id.rs_swActive));
+        swActive = view.findViewById(R.id.rs_swActive);
         swActive.setOnClickListener(v -> {
             if (swActive.isChecked()) {
                 ruleset.setActive("yes");
@@ -129,7 +133,7 @@ public class RulesetFragment extends Fragment {
             }
             btnSave.setEnabled(true);
         });
-        edtFrom = ((EditText) view.findViewById(R.id.rs_edtFrom));
+        edtFrom = view.findViewById(R.id.rs_edtFrom);
         edtFrom.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 imm.hideSoftInputFromWindow(edtFrom.getWindowToken(), 0);
@@ -153,7 +157,7 @@ public class RulesetFragment extends Fragment {
                 }
             }
         }));
-        edtTo = ((EditText) view.findViewById(R.id.rs_edtTo));
+        edtTo = view.findViewById(R.id.rs_edtTo);
         edtTo.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 imm.hideSoftInputFromWindow(edtTo.getWindowToken(), 0);
@@ -176,7 +180,7 @@ public class RulesetFragment extends Fragment {
                 }
             }
         });
-        edtIdeal = ((EditText) view.findViewById(R.id.rs_edtIdeal));
+        edtIdeal = view.findViewById(R.id.rs_edtIdeal);
         edtIdeal.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 imm.hideSoftInputFromWindow(edtIdeal.getWindowToken(), 0);
@@ -365,8 +369,7 @@ public class RulesetFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        curIPAddress = getContext().getSharedPreferences("TerrariaApp", 0).getString("terrarium" + tabnr + "_ip_address", "");
-        getRuleset();
+        curIPAddress = requireContext().getSharedPreferences("TerrariaApp", 0).getString("terrarium" + tabnr + "_ip_address", "");
 
         spn_items = new ArrayList<>();
         spn_items.add("");
@@ -383,45 +386,67 @@ public class RulesetFragment extends Fragment {
         for (int a = 0; a < (NR_OF_ACTIONS * 2); a++) {
             spnDevice[a].setAdapter(adapter);
         }
+        getRuleset();
     }
 
     private void getRuleset() {
         wait = new WaitSpinner(requireContext());
         wait.start();
-        String url = "http://" + curIPAddress + "/ruleset/" + currentRsNr;
-        Log.i("Terraria", "Execute GET request " + url);
-        // Request sensor readings.
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                (Response.Listener<JSONObject>) response1 -> {
-                    Gson gson = new Gson();
-                    try {
-                        ruleset = gson.fromJson(response1.toString(), Ruleset.class);
-                        Log.i("Terraria", "Retrieved ruleset " + currentRsNr + ":\n" + response1.toString());
-                        updateRuleset();
-                        currentRlNr = 0;
-                        updateRule();
-                        currentRlNr = 1;
-                        updateRule();
+        if (TerrariaApp.MOCK) {
+            Log.i("Terraria","Mock Ruleset " + currentRsNr + " response");
+            try {
+                Gson gson = new Gson();
+                String response = new BufferedReader(
+                        new InputStreamReader(getResources().getAssets().open("ruleset" + currentRsNr + ".json")))
+                        .lines().collect(Collectors.joining("\n"));
+                ruleset = gson.fromJson(response.toString(), Ruleset.class);
+                Log.i("Terraria", "Retrieved ruleset " + currentRsNr + ":\n" + response.toString());
+                updateRuleset();
+                currentRlNr = 0;
+                updateRule();
+                currentRlNr = 1;
+                updateRule();
+                wait.dismiss();
+            } catch (IOException e) {
+                wait.dismiss();
+                Log.e("Terraria", e.getMessage());
+            }
+        } else {
+            String url = "http://" + curIPAddress + "/ruleset/" + currentRsNr;
+            Log.i("Terraria", "Execute GET request " + url);
+            // Request sensor readings.
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                    response1 -> {
+                        Gson gson = new Gson();
+                        try {
+                            ruleset = gson.fromJson(response1.toString(), Ruleset.class);
+                            Log.i("Terraria", "Retrieved ruleset " + currentRsNr + ":\n" + response1.toString());
+                            updateRuleset();
+                            currentRlNr = 0;
+                            updateRule();
+                            currentRlNr = 1;
+                            updateRule();
+                            wait.dismiss();
+                        } catch (JsonSyntaxException e) {
+                            new NotificationDialog(requireContext(), "Error", "Timers response contains errors:\n" + e.getMessage()).show();
+                        }
+                    },
+                    error -> {
+                        if (error.getMessage() == null) {
+                            StringWriter sw = new StringWriter();
+                            PrintWriter pw = new PrintWriter(sw);
+                            error.printStackTrace(pw);
+                            Log.i("Terraria", "getRuleset error:\n" + sw.toString());
+                        } else {
+                            Log.i("Terraria", "Error " + error.getMessage());
+                            new NotificationDialog(requireContext(), "Error", "Kontakt met Control Unit verloren.").show();
+                        }
                         wait.dismiss();
-                    } catch (JsonSyntaxException e) {
-                        new NotificationDialog(requireContext(), "Error", "Timers response contains errors:\n" + e.getMessage()).show();
                     }
-                },
-                (Response.ErrorListener) error -> {
-                    if (error.getMessage() == null) {
-                        StringWriter sw = new StringWriter();
-                        PrintWriter pw = new PrintWriter(sw);
-                        error.printStackTrace(pw);
-                        Log.i("Terraria", "getRuleset error:\n" + sw.toString());
-                    } else {
-                        Log.i("Terraria", "Error " + error.getMessage());
-                        new NotificationDialog(requireContext(), "Error", "Kontakt met Control Unit verloren.").show();
-                    }
-                    wait.dismiss();
-                }
-        );
-        // Add the request to the RequestQueue.
-        RequestQueueSingleton.getInstance(requireContext()).add(jsonObjectRequest);
+            );
+            // Add the request to the RequestQueue.
+            RequestQueueSingleton.getInstance(requireContext()).add(jsonObjectRequest);
+        }
     }
 
     private void updateRuleset() {
@@ -499,11 +524,11 @@ public class RulesetFragment extends Fragment {
         Log.i("Terraria", "JSON sent:");
         Log.i("Terraria", json);
         VoidRequest req = new VoidRequest(Request.Method.PUT, url, json,
-                (Response.Listener<Void>) response -> {
+                response -> {
                     Log.i("Terraria", "Ruleset " + currentRsNr + " has been saved.");
                     wait.dismiss();
                 },
-                (Response.ErrorListener) error -> {
+                error -> {
                     wait.dismiss();
                     Log.i("Terraria", "Error " + error.getMessage());
                     new NotificationDialog(requireActivity(), "Error", "Kontakt met Control Unit verloren.").show();

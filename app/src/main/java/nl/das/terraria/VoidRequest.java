@@ -1,6 +1,5 @@
 package nl.das.terraria;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -16,7 +15,7 @@ public class VoidRequest extends Request<Void> {
         this.listener = listener;
     }
     @Override
-    public byte[] getBody() throws AuthFailureError {
+    public byte[] getBody() {
         if (requestBody == null) {
             return null;
         } else {

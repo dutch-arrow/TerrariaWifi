@@ -14,7 +14,7 @@ import androidx.appcompat.app.AlertDialog;
 import nl.das.terraria.R;
 
 public class WaitSpinner {
-    private Context context;
+    private final Context context;
     private AlertDialog waitSpinner;
 
     public WaitSpinner(Context context) {
@@ -40,19 +40,12 @@ public class WaitSpinner {
      * To resize the size of this dialog
      */
     private void resizeDialog() {
-        try {
-            Window window = waitSpinner.getWindow();
+             Window window = waitSpinner.getWindow();
             if (context == null || window == null) return;
             DisplayMetrics displayMetrics = new DisplayMetrics();
             ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRealMetrics(displayMetrics);
             // Adjust width and height
-//            int height = displayMetrics.heightPixels;
-//            int width = displayMetrics.widthPixels;
-//            window.setLayout((int) (width ), (int) (height));
             // Change background
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));// make tranparent around the popup
-        } catch (Exception ignore) {
-            ignore.printStackTrace();
-        }
     }
 }

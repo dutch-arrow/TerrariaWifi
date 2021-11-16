@@ -1,0 +1,42 @@
+[
+  {
+    "device": "light1",
+    "state": "on",
+    "end_time": "no endtime",
+    "hours_on": 0,
+    "manual": "no"
+  },
+  {
+    "device": "light2",
+    "state": "on",
+    "end_time": "no endtime",
+    "hours_on": 0,
+    "manual": "no"
+  },
+  {
+    "device": "uvlight",
+    "state": "on",
+    "end_time": "no endtime",
+    "hours_on": 0,
+    "manual": "no"
+  },
+  {
+    "device": "fan_in",
+    "state": "on",
+    "end_time": "until ideal temperature is reached",
+    "hours_on": 0,
+    "manual": "no"
+  },
+  {
+    "device": "fan_out",
+    "state": "off",
+    "hours_on": 0,
+    "manual": "no"
+  },
+  {
+    "device": "sprayer",
+    "state": "off",
+    "hours_on": 0,
+    "manual": "no"
+  }
+]

@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,7 +8,6 @@
 
 
     <LinearLayout
-        android:id="@+id/trm_stateHeader"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:orientation="horizontal"
@@ -24,32 +21,28 @@
             android:text="@string/st_btnRefresh" />
 
         <TextView
-            android:id="@+id/trm_textViewTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginStart="-120dp"
             android:gravity="center"
-            android:text="@string/titleStateFragment"
+            android:text="@string/mitState"
             android:textSize="24sp" />
 
     </LinearLayout>
 
     <View
-        android:id="@+id/trm_divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:orientation="horizontal"
         android:background="?android:attr/listDivider" />
 
     <LinearLayout
-        android:id="@+id/trm_stateGeneral"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/trm_st_tvwClock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -76,7 +69,6 @@
             android:text="@string/st_btnManual" />
 
         <TextView
-            android:id="@+id/trm_st_tvwTerrarium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -95,7 +87,6 @@
             android:textSize="24sp" />
 
         <TextView
-            android:id="@+id/trm_st_tvwTdegrees"
             android:layout_width="39dp"
             android:layout_height="34dp"
             android:layout_gravity="center_vertical"
@@ -105,7 +96,6 @@
             android:textSize="24sp" />
 
         <TextView
-            android:id="@+id/trm_st_tvwRoom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -124,7 +114,6 @@
             android:textSize="24sp" />
 
         <TextView
-            android:id="@+id/trm_st_tvwTdegrees2"
             android:layout_width="39dp"
             android:layout_height="34dp"
             android:layout_gravity="center_vertical"
@@ -142,7 +131,6 @@
             android:textSize="24sp" />
 
         <TextView
-            android:id="@+id/trm_st_tvwTPercent2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -153,7 +141,6 @@
     </LinearLayout>
 
     <View
-        android:id="@+id/trm_divider3"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="?android:attr/listDivider" />
@@ -163,7 +150,6 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/trm_textView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -173,7 +159,6 @@
             android:textSize="12sp" />
 
         <TextView
-            android:id="@+id/trm_textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"

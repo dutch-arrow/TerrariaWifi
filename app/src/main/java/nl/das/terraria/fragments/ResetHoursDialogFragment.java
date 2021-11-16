@@ -15,10 +15,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
 
+import java.util.Objects;
+
 import nl.das.terraria.R;
 
 public class ResetHoursDialogFragment extends DialogFragment  implements TextView.OnEditorActionListener {
-    private String device;
     private EditText mEditText;
 
     public ResetHoursDialogFragment() {
@@ -64,12 +65,12 @@ public class ResetHoursDialogFragment extends DialogFragment  implements TextVie
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mEditText = (EditText) view.findViewById(R.id.edtResetHours);
+        mEditText = view.findViewById(R.id.edtResetHours);
         // Fetch arguments from bundle and set title
-        device= getArguments().getString("device");
+        String device = requireArguments().getString("device");
         // Show soft keyboard automatically and request focus to field
         mEditText.requestFocus();
-        getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        Objects.requireNonNull(getDialog()).getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         mEditText.setOnEditorActionListener(this);
     }
 }

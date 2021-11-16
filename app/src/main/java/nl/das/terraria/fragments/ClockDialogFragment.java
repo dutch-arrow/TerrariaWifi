@@ -18,6 +18,7 @@ import androidx.fragment.app.FragmentManager;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 import nl.das.terraria.R;
 
@@ -26,14 +27,13 @@ public class ClockDialogFragment extends DialogFragment implements TextView.OnEd
     private EditText edtDatetime;
 
     public static ClockDialogFragment newInstance() {
-        ClockDialogFragment frag = new ClockDialogFragment();
-        return frag;
+        return new ClockDialogFragment();
     }
 
     // Interface that must be implemented by the StateFragment class
     // So that the result can be communicated back.
     public interface ClockDialogListener {
-        public void onClockSave(String dateTime);
+        void onClockSave(String dateTime);
     }
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -47,7 +47,7 @@ public class ClockDialogFragment extends DialogFragment implements TextView.OnEd
                     SimpleDateFormat fmtchk = new SimpleDateFormat("dd/MM/yyyy HH:mm");
                     Date dattim = fmtchk.parse(dt);
                     SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-                    String dtout = fmt.format(dattim);
+                    String dtout = fmt.format(Objects.requireNonNull(dattim));
                     Bundle res = new Bundle();
                     res.putString("clockValue", dtout);
                     fm.setFragmentResult("time", res);
@@ -75,10 +75,10 @@ public class ClockDialogFragment extends DialogFragment implements TextView.OnEd
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        edtDatetime = (EditText) view.findViewById(R.id.dlg_edtClock);
+        edtDatetime = view.findViewById(R.id.dlg_edtClock);
         // Show soft keyboard automatically and request focus to field
         edtDatetime.requestFocus();
-        getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        Objects.requireNonNull(getDialog()).getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         edtDatetime.setOnEditorActionListener(this);
     }
 }

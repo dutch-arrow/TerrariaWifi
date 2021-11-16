@@ -1,0 +1,32 @@
+[
+  {
+    "device": "mist",
+    "index": 1,
+    "hour_on": 6,
+    "minute_on": 0,
+    "hour_off": 6,
+    "minute_off": 45,
+    "repeat": 1,
+    "period": 0
+  },
+  {
+    "device": "mist",
+    "index": 2,
+    "hour_on": 22,
+    "minute_on": 15,
+    "hour_off": 23,
+    "minute_off": 0,
+    "repeat": 1,
+    "period": 0
+  },
+  {
+    "device": "mist",
+    "index": 3,
+    "hour_on": 0,
+    "minute_on": 0,
+    "hour_off": 0,
+    "minute_off": 0,
+    "repeat": 0,
+    "period": 0
+  }
+]

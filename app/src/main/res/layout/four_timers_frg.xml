@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -169,7 +168,6 @@
             app:layout_constraintTop_toTopOf="@+id/it_edtRepeat_1" />
 
         <TextView
-            android:id="@+id/it_tvwSeconds_1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -318,7 +316,6 @@
             app:layout_constraintTop_toTopOf="@+id/it_edtRepeat_2" />
 
         <TextView
-            android:id="@+id/it_tvwSeconds_2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -467,7 +464,6 @@
             app:layout_constraintTop_toTopOf="@+id/it_edtRepeat_3" />
 
         <TextView
-            android:id="@+id/it_tvwSeconds_3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -616,7 +612,6 @@
             app:layout_constraintTop_toTopOf="@+id/it_edtRepeat_4" />
 
         <TextView
-            android:id="@+id/it_tvwSeconds_4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"

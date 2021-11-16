@@ -8,7 +8,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentResultListener;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,7 +18,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
@@ -27,14 +25,18 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import nl.das.terraria.R;
 import nl.das.terraria.RequestQueueSingleton;
@@ -80,12 +82,11 @@ public class StateFragment extends Fragment {
         if (getArguments() != null) {
             tabnr = getArguments().getInt("tabnr");
         }
-        Log.i("Terraria", "StateFragment.onCreate() end");
+        Log.i("Terraria", "StateFragment.onCreate() end. Tabnr=" + tabnr);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.i("Terraria", "StateFragment.onCreateView() start");
         View view = inflater.inflate(R.layout.fragment_state, container, false);
         deviceLayout = view.findViewById(R.id.trm_lay_device_state);
@@ -110,7 +111,7 @@ public class StateFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         Log.i("Terraria", "StateFragment.onViewCreated() start");
         super.onViewCreated(view, savedInstanceState);
-        curIPAddress = getContext().getSharedPreferences("TerrariaApp", 0).getString("terrarium1_ip_address", "");
+        curIPAddress = requireContext().getSharedPreferences("TerrariaApp", 0).getString("terrarium" + tabnr + "_ip_address", "");
         // Header
         Button btn = view.findViewById(R.id.trm_refreshButton);
         btn.setOnClickListener(v -> {
@@ -125,12 +126,7 @@ public class StateFragment extends Fragment {
             ClockDialogFragment dlgClock = ClockDialogFragment.newInstance();
             FragmentManager fm = requireActivity().getSupportFragmentManager();
             // SETS the target fragment for use later when sending results
-            fm.setFragmentResultListener("time", this, new FragmentResultListener() {
-                @Override
-                public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
-                    result.getString("clockValue");
-                }
-            });
+            fm.setFragmentResultListener("time", this, (requestKey, result) -> result.getString("clockValue"));
             dlgClock.show(fm, "ClockDialogFragment");
         });
         // walk through all device views
@@ -167,12 +163,9 @@ public class StateFragment extends Fragment {
                     ResetHoursDialogFragment dlgReset = ResetHoursDialogFragment.newInstance(d.getDevice());
                     FragmentManager fm = requireActivity().getSupportFragmentManager();
                     // SETS the target fragment for use later when sending results
-                    fm.setFragmentResultListener("reset", this, new FragmentResultListener() {
-                        @Override
-                        public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
-                            tvwHours.setText(result.getInt("hours") + "");
-                            onResetHoursSave(d.getDevice(), result.getInt("hours"));
-                        }
+                    fm.setFragmentResultListener("reset", this, (requestKey, result) -> {
+                        tvwHours.setText(result.getInt("hours") + "");
+                        onResetHoursSave(d.getDevice(), result.getInt("hours"));
                     });
                     dlgReset.show(fm, "ResetHoursDialogFragment");
                 });
@@ -197,11 +190,11 @@ public class StateFragment extends Fragment {
         Log.i("Terraria","Execute PUT request " + url);
         // Switch device off.
         StringRequest jsonArrayRequest = new StringRequest(Request.Method.PUT, url,
-                (Response.Listener<String>) response1 -> {
+                response1 -> {
                     Log.i("Terraria", "Switch device " + device + (yes ? " on" : " off"));
                     wait.dismiss();
                 },
-                (Response.ErrorListener) error -> {
+                error -> {
                     wait.dismiss();
                     Log.i("Terraria","Error " + error.getMessage());
                     new NotificationDialog(getContext(), "Error", "Kontakt met Terrarium Control Unit verloren.").show();
@@ -218,11 +211,11 @@ public class StateFragment extends Fragment {
         Log.i("Terraria","Execute PUT request " + url);
         // Switch device off.
         StringRequest jsonArrayRequest = new StringRequest(Request.Method.PUT, url,
-                (Response.Listener<String>) response1 -> {
+                response1 -> {
                     Log.i("Terraria", "Switch device " + device + (yes ? " to manual" : " to auto"));
                     wait.dismiss();
                 },
-                (Response.ErrorListener) error -> {
+                error -> {
                     wait.dismiss();
                     Log.i("Terraria","Error " + error.getMessage());
                     new NotificationDialog(getContext(), "Error", "Kontakt met Terrarium Control Unit verloren.").show();
@@ -235,35 +228,50 @@ public class StateFragment extends Fragment {
     private void getSensors() {
         wait = new WaitSpinner(requireContext());
         wait.start();
-        String url = "http://" + curIPAddress + "/sensors";
-        Log.i("Terraria","Execute GET request " + url);
-        // Request sensor readings.
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-            (Response.Listener<JSONObject>) response1 -> {
-                Log.i("Terraria", "Retrieved sensor readings");
-                Gson gson = new Gson();
-                try {
-                    sensors = gson.fromJson(response1.toString(), Sensors.class);
-                    updateSensors();
-                } catch (JsonSyntaxException e) {
-                    new NotificationDialog(requireContext(), "Error", "Sensors response contains errors:\n" + e.getMessage()).show();
-                }
-            },
-            (Response.ErrorListener) error -> {
-                if (error.getMessage() == null) {
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    error.printStackTrace(pw);
-                    Log.i("Terraria", "loadSensors error:\n" + sw.toString());
-                } else {
-                    Log.i("Terraria", "Error " + error.getMessage());
-                    new NotificationDialog(requireContext(), "Error", "Kontakt met Terrarium Control Unit verloren.").show();
-                }
-                wait.dismiss();
+        if (TerrariaApp.MOCK) {
+            Log.i("Terraria", "Retrieved mocked sensor readings");
+            Gson gson = new Gson();
+            try {
+                String response = new BufferedReader(
+                    new InputStreamReader(getResources().getAssets().open("sensors.json")))
+                    .lines().collect(Collectors.joining("\n"));
+                sensors = gson.fromJson(response, Sensors.class);
+                updateSensors();
+            } catch (JsonSyntaxException | IOException e) {
+                new NotificationDialog(requireContext(), "Error", "Sensors response contains errors:\n" + e.getMessage()).show();
             }
-        );
-        // Add the request to the RequestQueue.
-        RequestQueueSingleton.getInstance(requireContext()).add(jsonObjectRequest);
+
+        } else {
+            String url = "http://" + curIPAddress + "/sensors";
+            Log.i("Terraria", "Execute GET request " + url);
+            // Request sensor readings.
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                response1 -> {
+                    Log.i("Terraria", "Retrieved sensor readings");
+                    Gson gson = new Gson();
+                    try {
+                        sensors = gson.fromJson(response1.toString(), Sensors.class);
+                        updateSensors();
+                    } catch (JsonSyntaxException e) {
+                        new NotificationDialog(requireContext(), "Error", "Sensors response contains errors:\n" + e.getMessage()).show();
+                    }
+                },
+                error -> {
+                    if (error.getMessage() == null) {
+                        StringWriter sw = new StringWriter();
+                        PrintWriter pw = new PrintWriter(sw);
+                        error.printStackTrace(pw);
+                        Log.i("Terraria", "loadSensors error:\n" + sw.toString());
+                    } else {
+                        Log.i("Terraria", "Error " + error.getMessage());
+                        new NotificationDialog(requireContext(), "Error", "Kontakt met Terrarium Control Unit verloren.").show();
+                    }
+                    wait.dismiss();
+                }
+            );
+            // Add the request to the RequestQueue.
+            RequestQueueSingleton.getInstance(requireContext()).add(jsonObjectRequest);
+        }
     }
 
     private void updateSensors() {
@@ -279,36 +287,52 @@ public class StateFragment extends Fragment {
     }
 
     private void getState() {
-        String url = "http://" +  curIPAddress +  "/state";
-        Log.i("Terraria","Execute GET request " + url);
         // Request state.
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
-            (Response.Listener<JSONArray>) response1 -> {
-                Log.i("Terraria", "Retrieved " + response1.length() + " states");
-                Gson gson = new Gson();
-                try {
-                    List<State> states = gson.fromJson(response1.toString(), new TypeToken<List<State>>() {}.getType());
-                    updateState(states);
-                } catch (JsonSyntaxException e) {
-                    new NotificationDialog(requireContext(), "Error", "State response contains errors:\n" + e.getMessage()).show();
-                }
+        if (TerrariaApp.MOCK) {
+            Log.i("Terraria", "Retrieved mocked state readings");
+            Gson gson = new Gson();
+            try {
+                String response = new BufferedReader(
+                        new InputStreamReader(getResources().getAssets().open("state_" + (tabnr == 1 ? "tim" : "bjorn") + ".json")))
+                        .lines().collect(Collectors.joining("\n"));
+                List<State> states = gson.fromJson(response, new TypeToken<List<State>>() {}.getType());
+                updateState(states);
                 wait.dismiss();
-            },
-            (Response.ErrorListener) error -> {
-                if (error.getMessage() == null) {
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    error.printStackTrace(pw);
-                    Log.i("Terraria", "loadState error:\n" + sw.toString());
-                } else {
-                    Log.i("Terraria", "Error " + error.getMessage());
-                    new NotificationDialog(requireContext(), "Error", "Kontakt met Terrarium Control Unit verloren.").show();
-                }
-                wait.dismiss();
+            } catch (JsonSyntaxException | IOException e) {
+                new NotificationDialog(requireContext(), "Error", "State response contains errors:\n" + e.getMessage()).show();
             }
-        );
-        // Add the request to the RequestQueue.
-        RequestQueueSingleton.getInstance(requireContext()).add(jsonArrayRequest);
+
+        } else {
+            String url = "http://" +  curIPAddress +  "/state";
+            Log.i("Terraria","Execute GET request " + url);
+            JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
+                response1 -> {
+                    Log.i("Terraria", "Retrieved " + response1.length() + " states");
+                    Gson gson = new Gson();
+                    try {
+                        List<State> states = gson.fromJson(response1.toString(), new TypeToken<List<State>>() {}.getType());
+                        updateState(states);
+                    } catch (JsonSyntaxException e) {
+                        new NotificationDialog(requireContext(), "Error", "State response contains errors:\n" + e.getMessage()).show();
+                    }
+                    wait.dismiss();
+                },
+                error -> {
+                    if (error.getMessage() == null) {
+                        StringWriter sw = new StringWriter();
+                        PrintWriter pw = new PrintWriter(sw);
+                        error.printStackTrace(pw);
+                        Log.i("Terraria", "loadState error:\n" + sw.toString());
+                    } else {
+                        Log.i("Terraria", "Error " + error.getMessage());
+                        new NotificationDialog(requireContext(), "Error", "Kontakt met Terrarium Control Unit verloren.").show();
+                    }
+                    wait.dismiss();
+                }
+            );
+            // Add the request to the RequestQueue.
+            RequestQueueSingleton.getInstance(requireContext()).add(jsonArrayRequest);
+        }
     }
 
     private void updateState(List<State> states) {
@@ -342,7 +366,7 @@ public class StateFragment extends Fragment {
         Log.i("Terraria","Execute PUT request " + url);
         // Switch device off.
         StringRequest jsonArrayRequest = new StringRequest(Request.Method.POST, url,
-                (Response.Listener<String>) response1 -> {
+                response1 -> {
                     Log.i("Terraria", "The clock has been set");
                     try {
                         SimpleDateFormat fmtin = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -356,7 +380,7 @@ public class StateFragment extends Fragment {
                     }
                     wait.dismiss();
                 },
-                (Response.ErrorListener) error -> {
+                error -> {
                     wait.dismiss();
                     Log.i("Terraria","Error " + error.getMessage());
                     new NotificationDialog(getContext(), "Error", "Kontakt met Terrarium Control Unit verloren.").show();
@@ -369,18 +393,18 @@ public class StateFragment extends Fragment {
     public void onResetHoursSave(String device, int hoursOn) {
         final WaitSpinner wait = new WaitSpinner(requireActivity());
         wait.start();
-        String url = "http://" + curIPAddress + "/counter/" + device  + "/" + hoursOn;;
+        String url = "http://" + curIPAddress + "/counter/" + device  + "/" + hoursOn;
         Log.i("Terraria","Execute POST request " + url);
         // Set counter.
         StringRequest jsonObjectRequest = new StringRequest(Request.Method.POST, url,
-                (Response.Listener<String>) response -> {
+                response -> {
                     Log.i("Terraria", "Set lifecycle counter of " + device + " to " + hoursOn);
                     wait.dismiss();
                 },
-                (Response.ErrorListener) error -> {
+                error -> {
                     wait.dismiss();
                     Log.i("Terrarium","Error " + error.getMessage());
-                    new NotificationDialog(getContext(), "Error", "Kontakt met Kweekbakken Control Unit verloren.").show();
+                    new NotificationDialog(getContext(), "Error", "Kontakt met Terrarium Control Unit verloren.").show();
                 }
         );
         // Add the request to the RequestQueue.

@@ -15,11 +15,9 @@ import com.android.volley.toolbox.HurlStack;
 public class RequestQueueSingleton {
     @SuppressLint("StaticFieldLeak")
     private static RequestQueueSingleton instance;
-    private RequestQueue requestQueue;
-    private Context ctx;
+    private final RequestQueue requestQueue;
 
     private RequestQueueSingleton(Context context) {
-        ctx = context;
         // Instantiate the cache
         Cache cache = new DiskBasedCache(context.getCacheDir(), 1024 * 1024); // 1MB cap
         // Set up the network to use HttpURLConnection as the HTTP client.

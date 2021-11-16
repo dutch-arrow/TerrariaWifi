@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
 
-    android:id="@+id/rs_layRulesets"
-        android:layout_width="match_parent"
+    android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
@@ -37,7 +36,6 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/rs_layHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -153,7 +151,6 @@
                 app:layout_constraintTop_toTopOf="@+id/rs_edtTo" />
 
             <TextView
-                android:id="@+id/rs_lblDegrees"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/degrees"
@@ -167,7 +164,6 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <include
-            android:id="@+id/rs_rules"
             layout="@layout/rule_actions_frg"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />

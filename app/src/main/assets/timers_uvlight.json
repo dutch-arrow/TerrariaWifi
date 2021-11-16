@@ -1,0 +1,12 @@
+[
+  {
+    "device": "uvlight",
+    "index": 1,
+    "hour_on": 10,
+    "minute_on": 15,
+    "hour_off": 21,
+    "minute_off": 0,
+    "repeat": 1,
+    "period": 0
+  }
+]

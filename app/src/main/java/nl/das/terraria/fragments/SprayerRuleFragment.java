@@ -16,18 +16,21 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import org.json.JSONObject;
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import nl.das.terraria.R;
 import nl.das.terraria.RequestQueueSingleton;
+import nl.das.terraria.TerrariaApp;
 import nl.das.terraria.VoidRequest;
 import nl.das.terraria.dialogs.NotificationDialog;
 import nl.das.terraria.dialogs.WaitSpinner;
@@ -37,7 +40,6 @@ import nl.das.terraria.json.SprayerRule;
 public class SprayerRuleFragment extends Fragment {
     // Drying rule
     private Button btnSaveDR;
-    private Button btnRefreshDR;
     private EditText edtDelay;
     private EditText edtFanInPeriod;
     private EditText edtFanOutPeriod;
@@ -71,35 +73,29 @@ public class SprayerRuleFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.drying_rule_frg, parent, false).getRootView();
-        imm = (InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        btnSaveDR = (Button) view.findViewById(R.id.dr_btnSave);
+        btnSaveDR = view.findViewById(R.id.dr_btnSave);
         btnSaveDR.setEnabled(false);
-        btnSaveDR.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                btnSaveDR.requestFocusFromTouch();
-                Log.i("Terraria", "Save");
-                saveDryingRule();
-                btnSaveDR.setEnabled(false);
-            }
+        btnSaveDR.setOnClickListener(v -> {
+            btnSaveDR.requestFocusFromTouch();
+            Log.i("Terraria", "Save");
+            saveDryingRule();
+            btnSaveDR.setEnabled(false);
         });
-        btnRefreshDR = (Button) view.findViewById(R.id.dr_btnRefresh);
+        Button btnRefreshDR = view.findViewById(R.id.dr_btnRefresh);
         btnRefreshDR.setEnabled(true);
-        btnRefreshDR.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.i("Terraria", "Refresh");
-                getDryingRule();
-                btnSaveDR.setEnabled(false);
-            }
+        btnRefreshDR.setOnClickListener(v -> {
+            Log.i("Terraria", "Refresh");
+            getDryingRule();
+            btnSaveDR.setEnabled(false);
         });
 
         edtDelay = view.findViewById(R.id.dr_edtDelay);
         edtDelay.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 String value = String.valueOf(edtDelay.getText()).trim();
-                if (checkInteger(edtDelay, value, 0, 60)) {
+                if (checkInteger(edtDelay, value)) {
                     dryingRule.setDelay(Integer.parseInt(value));
                     edtFanInPeriod.requestFocus();
                     btnSaveDR.setEnabled(true);
@@ -111,7 +107,7 @@ public class SprayerRuleFragment extends Fragment {
         edtDelay.setOnFocusChangeListener(((v, hasFocus) -> {
             if (!hasFocus) {
                 String value = String.valueOf(edtDelay.getText()).trim();
-                if (checkInteger(edtDelay, value, 0, 60)) {
+                if (checkInteger(edtDelay, value)) {
                     dryingRule.setDelay(Integer.parseInt(value));
                     btnSaveDR.setEnabled(true);
                 }
@@ -122,7 +118,7 @@ public class SprayerRuleFragment extends Fragment {
         edtFanInPeriod.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 String value = String.valueOf(edtFanInPeriod.getText()).trim();
-                if (checkInteger(edtFanInPeriod, value, 0, 60)) {
+                if (checkInteger(edtFanInPeriod, value)) {
                     dryingRule.getActions().get(0).setDevice("fan_in");
                     dryingRule.getActions().get(0).setOnPeriod(Integer.parseInt(value) * 60);
                     edtFanOutPeriod.requestFocus();
@@ -135,7 +131,7 @@ public class SprayerRuleFragment extends Fragment {
         edtFanInPeriod.setOnFocusChangeListener(((v, hasFocus) -> {
             if (!hasFocus) {
                 String value = String.valueOf(edtFanInPeriod.getText()).trim();
-                if (checkInteger(edtFanInPeriod, value, 0, 60)) {
+                if (checkInteger(edtFanInPeriod, value)) {
                     dryingRule.getActions().get(0).setDevice("fan_in");
                     dryingRule.getActions().get(0).setOnPeriod(Integer.parseInt(value) * 60);
                     btnSaveDR.setEnabled(true);
@@ -148,7 +144,7 @@ public class SprayerRuleFragment extends Fragment {
         edtFanOutPeriod.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 String value = String.valueOf(edtFanOutPeriod.getText()).trim();
-                if (checkInteger(edtFanOutPeriod, value, 0, 60)) {
+                if (checkInteger(edtFanOutPeriod, value)) {
                     dryingRule.getActions().get(1).setDevice("fan_out");
                     dryingRule.getActions().get(1).setOnPeriod(Integer.parseInt(value) * 60);
                     btnSaveDR.setEnabled(true);
@@ -160,7 +156,7 @@ public class SprayerRuleFragment extends Fragment {
         edtFanOutPeriod.setOnFocusChangeListener(((v, hasFocus) -> {
             if (!hasFocus) {
                 String value = String.valueOf(edtFanOutPeriod.getText()).trim();
-                if (checkInteger(edtFanOutPeriod, value, 0, 60)) {
+                if (checkInteger(edtFanOutPeriod, value)) {
                     dryingRule.getActions().get(1).setDevice("fan_out");
                     dryingRule.getActions().get(1).setOnPeriod(Integer.parseInt(value) * 60);
                     btnSaveDR.setEnabled(true);
@@ -173,43 +169,60 @@ public class SprayerRuleFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        curIPAddress = getContext().getSharedPreferences("TerrariaApp", 0).getString("terrarium" + tabnr + "_ip_address", "");
+        curIPAddress = requireContext().getSharedPreferences("TerrariaApp", 0).getString("terrarium" + tabnr + "_ip_address", "");
         getDryingRule();
     }
 
     private void getDryingRule() {
         wait = new WaitSpinner(requireContext());
         wait.start();
-        String url = "http://" + curIPAddress + "/sprayerrule";
-        Log.i("Terraria", "Execute GET request " + url);
-        // Request sensor readings.
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                (Response.Listener<JSONObject>) response1 -> {
-                    Gson gson = new Gson();
-                    try {
-                        dryingRule = gson.fromJson(response1.toString(), SprayerRule.class);
-                        Log.i("Terraria", "Retrieved dryingrule");
-                        updateDryingRule();
+        if (TerrariaApp.MOCK) {
+            Log.i("Terraria","Mock Sparyerrule response");
+            try {
+                Gson gson = new Gson();
+                String response = new BufferedReader(
+                        new InputStreamReader(getResources().getAssets().open("sprayer_rule.json")))
+                        .lines().collect(Collectors.joining("\n"));
+                dryingRule = gson.fromJson(response.toString(), SprayerRule.class);
+                Log.i("Terraria", "Retrieved dryingrule");
+                updateDryingRule();
+                wait.dismiss();
+            } catch (IOException e) {
+                wait.dismiss();
+                Log.e("Terraria", e.getMessage());
+            }
+        } else {
+            String url = "http://" + curIPAddress + "/sprayerrule";
+            Log.i("Terraria", "Execute GET request " + url);
+            // Request sensor readings.
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                    response1 -> {
+                        Gson gson = new Gson();
+                        try {
+                            dryingRule = gson.fromJson(response1.toString(), SprayerRule.class);
+                            Log.i("Terraria", "Retrieved dryingrule");
+                            updateDryingRule();
+                            wait.dismiss();
+                        } catch (JsonSyntaxException e) {
+                            new NotificationDialog(requireContext(), "Error", "Drying rule response contains errors:\n" + e.getMessage()).show();
+                        }
+                    },
+                    error -> {
+                        if (error.getMessage() == null) {
+                            StringWriter sw = new StringWriter();
+                            PrintWriter pw = new PrintWriter(sw);
+                            error.printStackTrace(pw);
+                            Log.i("Terraria", "getDryingRule error:\n" + sw.toString());
+                        } else {
+                            Log.i("Terraria", "Error " + error.getMessage());
+                            new NotificationDialog(requireContext(), "Error", "Kontakt met Control Unit verloren.").show();
+                        }
                         wait.dismiss();
-                    } catch (JsonSyntaxException e) {
-                        new NotificationDialog(requireContext(), "Error", "Drying rule response contains errors:\n" + e.getMessage()).show();
                     }
-                },
-                (Response.ErrorListener) error -> {
-                    if (error.getMessage() == null) {
-                        StringWriter sw = new StringWriter();
-                        PrintWriter pw = new PrintWriter(sw);
-                        error.printStackTrace(pw);
-                        Log.i("Terraria", "getDryingRule error:\n" + sw.toString());
-                    } else {
-                        Log.i("Terraria", "Error " + error.getMessage());
-                        new NotificationDialog(requireContext(), "Error", "Kontakt met Control Unit verloren.").show();
-                    }
-                    wait.dismiss();
-                }
-        );
-        // Add the request to the RequestQueue.
-        RequestQueueSingleton.getInstance(requireContext()).add(jsonObjectRequest);
+            );
+            // Add the request to the RequestQueue.
+            RequestQueueSingleton.getInstance(requireContext()).add(jsonObjectRequest);
+        }
     }
 
     private void updateDryingRule() {
@@ -240,11 +253,11 @@ public class SprayerRuleFragment extends Fragment {
         Log.i("Terraria", "JSON sent:");
         Log.i("Terraria", json);
         VoidRequest req = new VoidRequest(Request.Method.PUT, url, json,
-                (Response.Listener<Void>) response -> {
+                response -> {
                     Log.i("Terrarium", "Sprayer rule has been saved.");
                     wait.dismiss();
                 },
-                (Response.ErrorListener) error -> {
+                error -> {
                     wait.dismiss();
                     Log.i("Terrarium", "Error " + error.getMessage());
                     new NotificationDialog(requireActivity(), "Error", "Kontakt met Control Unit verloren.").show();
@@ -254,15 +267,15 @@ public class SprayerRuleFragment extends Fragment {
         RequestQueueSingleton.getInstance(requireContext()).add(req);
     }
 
-    private boolean checkInteger(EditText field, String value, int minValue, int maxValue) {
+    private boolean checkInteger(EditText field, String value) {
         if (value.trim().length() > 0) {
             try {
                 int rv = Integer.parseInt(value);
-                if (rv < minValue || rv > maxValue) {
-                    field.setError("Waarde moet tussen " + minValue + " en " + maxValue + " zijn.");
+                if (rv < 0 || rv > 60) {
+                    field.setError("Waarde moet tussen " + 0 + " en " + 60 + " zijn.");
                 }
             } catch (NumberFormatException e) {
-                field.setError("Waarde moet tussen " + minValue + " en " + maxValue + " zijn.");
+                field.setError("Waarde moet tussen " + 0 + " en " + 60 + " zijn.");
             }
         }
         return field.getError() == null;

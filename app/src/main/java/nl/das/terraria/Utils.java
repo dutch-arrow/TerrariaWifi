@@ -1,8 +1,5 @@
 package nl.das.terraria;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Utils {
     public static String cvthm2string(int hour, int minute) {
         if (hour == 0 && minute == 0) {

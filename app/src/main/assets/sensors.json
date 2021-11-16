@@ -1,0 +1,15 @@
+{
+  "clock": "24-10-2021 18:26",
+  "sensors": [
+    {
+      "location": "room",
+      "temperature": 21,
+      "humidity": 62
+    },
+    {
+      "location": "terrarium",
+      "temperature":25
+    }
+  ]
+}
+

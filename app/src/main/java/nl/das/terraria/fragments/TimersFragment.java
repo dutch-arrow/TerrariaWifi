@@ -72,7 +72,7 @@ public class TimersFragment extends Fragment {
                 }
                 btnCurrent = btn;
                 FragmentTransaction ft = getParentFragmentManager().beginTransaction();
-                ft.replace(R.id.tmr_timers, TimersListFragment.newInstance(d.getDevice()));
+                ft.replace(R.id.tmr_timers, TimersListFragment.newInstance(tabnr, d.getDevice()));
                 ft.commit();
             });
             deviceLayout.addView(v);

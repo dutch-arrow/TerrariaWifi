@@ -1,0 +1,22 @@
+[
+  {
+    "device": "pump",
+    "index": 1,
+    "hour_on": 12,
+    "minute_on": 0,
+    "hour_off": 12,
+    "minute_off": 15,
+    "repeat": 1,
+    "period": 0
+  },
+  {
+    "device": "pump",
+    "index": 2,
+    "hour_on": 18,
+    "minute_on": 0,
+    "hour_off": 18,
+    "minute_off": 15,
+    "repeat": 1,
+    "period": 0
+  }
+]
