@@ -58,7 +58,7 @@ public class SettingsFragment extends Fragment {
             int r = getResources().getIdentifier("tvwTerrarium" + tnr, "id", "nl.das.terraria2");
             TextView tvw = view.findViewById(r);
             tvw.setVisibility(View.VISIBLE);
-            tvw.setText(TerrariaApp.configs[i].getTcu() + " IP adres");
+            tvw.setText(TerrariaApp.configs[i].getTcuName() + " IP adres");
             r = getResources().getIdentifier("edtTerrarium" + tnr, "id", "nl.das.terraria2");
             EditText etv = view.findViewById(r);
             etv.setVisibility(View.VISIBLE);

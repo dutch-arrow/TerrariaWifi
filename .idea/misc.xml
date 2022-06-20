@@ -12,11 +12,12 @@
         <entry key="app/src/main/res/layout/fragment_device_state.xml" value="0.14375" />
         <entry key="app/src/main/res/layout/fragment_rulesets.xml" value="0.5" />
         <entry key="app/src/main/res/layout/fragment_settings.xml" value="0.5" />
-        <entry key="app/src/main/res/layout/fragment_state.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/fragment_state.xml" value="0.4416058394160584" />
         <entry key="app/src/main/res/layout/fragment_timers.xml" value="0.33" />
         <entry key="app/src/main/res/layout/rule_actions_frg.xml" value="0.38229166666666664" />
         <entry key="app/src/main/res/layout/ruleset_frg.xml" value="0.33" />
         <entry key="app/src/main/res/layout/spinner_list.xml" value="0.3296875" />
+        <entry key="app/src/main/res/layout/tab_bar.xml" value="0.9323447636700649" />
         <entry key="app/src/main/res/layout/trm_timer_device_fragment.xml" value="0.20677083333333332" />
         <entry key="app/src/main/res/layout/trm_timer_fragment.xml" value="0.3296875" />
         <entry key="app/src/main/res/layout/trm_timers_frg.xml" value="0.4062772449869224" />

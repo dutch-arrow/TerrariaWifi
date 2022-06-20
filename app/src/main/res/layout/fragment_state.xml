@@ -3,15 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.StateFragment"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:context=".fragments.StateFragment">
 
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:orientation="horizontal"
-        android:background="@color/colorAccent">
+        android:background="@color/colorAccent"
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/trm_refreshButton"
@@ -34,8 +34,8 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:orientation="horizontal"
-        android:background="?android:attr/listDivider" />
+        android:background="?android:attr/listDivider"
+        android:orientation="horizontal" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -137,6 +137,35 @@
             android:layout_marginStart="8dp"
             android:text="@string/percent"
             android:textSize="24sp" />
+
+        <!-- View makes sure the image buttons are right-aligned -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            />
+
+        <ImageButton
+            android:id="@+id/trm_st_btnRecord"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_gravity="center_vertical"
+            android:background="#00FFFFFF"
+            android:contentDescription="Record"
+            android:scaleType="fitCenter"
+            android:src="@drawable/play_icon"
+            android:tag="start" />
+
+        <ImageButton
+            android:id="@+id/trm_st_btnView"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            android:background="#00FFFFFF"
+            android:contentDescription="View"
+            android:scaleType="fitCenter"
+            android:src="@drawable/view_icon" />
 
     </LinearLayout>
 

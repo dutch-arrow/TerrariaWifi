@@ -1,0 +1,12 @@
+[
+  {
+    "device": "light1",
+    "index": 1,
+    "hour_on": 9,
+    "minute_on": 0,
+    "hour_off": 21,
+    "minute_off": 0,
+    "repeat": 1,
+    "period": 0
+  }
+]

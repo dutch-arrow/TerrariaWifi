@@ -40,7 +40,6 @@ import nl.das.terraria.Utils;
 import nl.das.terraria.VoidRequest;
 import nl.das.terraria.dialogs.NotificationDialog;
 import nl.das.terraria.dialogs.WaitSpinner;
-import nl.das.terraria.json.Properties;
 import nl.das.terraria.json.Timer;
 
 public class TimersListFragment extends Fragment {
@@ -50,10 +49,10 @@ public class TimersListFragment extends Fragment {
     private String curIPAddress;
     private Button btnSave;
     private Button btnRefresh;
-    private final EditText[] edtTimeOn = new EditText[4];
-    private final EditText[] edtTimeOff = new EditText[4];
-    private final EditText[] edtRepeat = new EditText[4];
-    private final EditText[] edtPeriod = new EditText[4];
+    private final EditText[] edtTimeOn = new EditText[5];
+    private final EditText[] edtTimeOff = new EditText[5];
+    private final EditText[] edtRepeat = new EditText[5];
+    private final EditText[] edtPeriod = new EditText[5];
 
 
     public static final Map<String, Timer[]> timers = new HashMap<>();
@@ -80,7 +79,7 @@ public class TimersListFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.four_timers_frg, container, false);
+        View view = inflater.inflate(R.layout.five_timers_frg, container, false);
         imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
         return view;
     }
@@ -106,7 +105,7 @@ public class TimersListFragment extends Fragment {
             btnSave.setEnabled(false);
         });
         int resId;
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 5; i++) {
             int nr = i;
             resId = getResources().getIdentifier("it_edtTimeOn_" + (i + 1), "id", getContext().getPackageName());
             edtTimeOn[i] = view.findViewById(resId);
@@ -279,7 +278,7 @@ public class TimersListFragment extends Fragment {
      }
 
     private void updateTimers() {
-        int[] ids = {R.id.it_layTimer_1, R.id.it_layTimer_2, R.id.it_layTimer_3, R.id.it_layTimer_4};
+        int[] ids = {R.id.it_layTimer_1, R.id.it_layTimer_2, R.id.it_layTimer_3, R.id.it_layTimer_4, R.id.it_layTimer_5};
         for (int i = 0; i < Objects.requireNonNull(timers.get(deviceID)).length; i++) {
             ConstraintLayout fcv = requireView().findViewById(ids[i]);
             fcv.setVisibility(View.VISIBLE);
@@ -295,12 +294,12 @@ public class TimersListFragment extends Fragment {
     private void getTimers() {
         wait = new WaitSpinner(requireContext());
         wait.start();
-        if (TerrariaApp.MOCK) {
+        if (TerrariaApp.MOCK[tabnr - 1]) {
             Log.i("Terraria","Mock Timers for device '" + deviceID + "' response");
             try {
                 Gson gson = new Gson();
                 String response = new BufferedReader(
-                        new InputStreamReader(getResources().getAssets().open("timers_" + deviceID + ".json")))
+                        new InputStreamReader(getResources().getAssets().open("timers_" + deviceID + "_" + TerrariaApp.configs[tabnr - 1].getMockPostfix() + ".json")))
                         .lines().collect(Collectors.joining("\n"));
                 Timer[] devTimers = gson.fromJson(response.toString(), new TypeToken<Timer[]>() {}.getType());
                 Log.i("Terraria", "Retrieved " + devTimers.length + " timers for device " + deviceID);

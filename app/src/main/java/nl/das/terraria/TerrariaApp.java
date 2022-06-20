@@ -41,7 +41,7 @@ import nl.das.terraria.json.Properties;
 
 public class TerrariaApp extends AppCompatActivity {
 
-    public static final boolean MOCK = true;
+    public static final boolean MOCK[] = {false, true, true};
 
     public static int nrOfTerraria;
     public static Properties[] configs;
@@ -75,7 +75,7 @@ public class TerrariaApp extends AppCompatActivity {
             int r = getResources().getIdentifier("tab" + tabnr, "id", "nl.das.terraria2");
             mTabTitles[i] = findViewById(r);
             configs[i] = new Properties();
-            configs[i].setTcu(config.getProperty("t" + tabnr +".tabtitle"));
+            configs[i].setTcuName(config.getProperty("t" + tabnr +".tabtitle"));
             configs[i].setMockPostfix(config.getProperty("t" + tabnr +".mock_postfix"));
         }
 
@@ -97,34 +97,31 @@ public class TerrariaApp extends AppCompatActivity {
         // Check if the SharedPreferences are there and filled
         sp = getApplicationContext().getSharedPreferences("TerrariaApp", 0);
         if (sp != null) {
-            boolean ipAddressesFilled = true;
             for (int i = 0; i < nrOfTerraria; i++) {
+                boolean ipAddressesFilled = true;
                 if (sp.getString("terrarium" + (i + 1) + "_ip_address", "x").equalsIgnoreCase("x")) {
                     ipAddressesFilled = false;
                 }
+                // Check if the ip addresses of the TCUs are reacheable
+                String message = "";
+                if (ipAddressesFilled || MOCK[i]) {
+                    if (!MOCK[i]) {
+                        message = isConnected(i);
+                        ok = (message.length() == 0);
+                    } else {
+                        ok = true;
+                    }
+                }
+                if (!ok) {
+                    ndlg = new NotificationDialog(this, "Error", message);
+                    ndlg.show();
+                    mTabbar.setVisibility(View.GONE);
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(id.layout, new SettingsFragment())
+                            .commit();
+                }
             }
-            ok = ipAddressesFilled;
-        }
-        // Check if the ip addresses of the TCU are reacheable
-        String message = "";
-        if (ok) {
-            if (!MOCK) {
-                message = isConnected();
-                ok = (message.length() == 0);
-            } else {
-                ok = true;
-            }
-        }
-        if (!ok) {
-            ndlg = new NotificationDialog(this, "Error", message);
-            ndlg.show();
-            mTabbar.setVisibility(View.GONE);
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(id.layout, new SettingsFragment())
-                    .commit();
-        } else {
-            // Get the properties of the TCU
             getProperties();
         }
         super.onStart();
@@ -229,33 +226,33 @@ public class TerrariaApp extends AppCompatActivity {
         wait.start();
         new Thread(() -> {
             // Executed in separate thread
-            Log.i("Terraria", "TerrariaApp.getProperties() thread start");
-            for (int i = 0; i < nrOfTerraria; i++) {
-                String name = configs[i].getTcu();
-                String pfx = configs[i].getMockPostfix();
-                if (MOCK) {
-                    Log.i("Terraria","Mock Property response");
+            for (int tcunr = 0; tcunr < nrOfTerraria; tcunr++) {
+                Log.i("Terraria", "TerrariaApp.getProperties() thread start or tab " + (tcunr + 1));
+                String name = configs[tcunr].getTcuName();
+                String pfx = configs[tcunr].getMockPostfix();
+                if (MOCK[tcunr]) {
+                    Log.i("Terraria", "Mock Property response");
                     try {
                         Gson gson = new Gson();
                         String response = new BufferedReader(
                                 new InputStreamReader(getResources().getAssets().open("properties_" + pfx + ".json")))
                                 .lines().collect(Collectors.joining("\n"));
-                        configs[i] = gson.fromJson(response, Properties.class);
+                        configs[tcunr] = gson.fromJson(response, Properties.class);
                     } catch (IOException e) {
                         Log.e("Terraria", e.getMessage());
                     }
                 } else {
                     try {
-                        String ip = sp.getString("terrarium" + (i + 1) + "_ip_address", "x");
+                        String ip = sp.getString("terrarium" + (tcunr + 1) + "_ip_address", "x");
                         URL url = new URL("http://" + ip + "/properties");
-                        Log.i("Terraria","TerrariaApp.getProperties() thread get properties from " + url);
+                        Log.i("Terraria", "TerrariaApp.getProperties() thread get properties from " + url);
                         HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
                         httpConnection.setRequestMethod("GET");
                         httpConnection.setRequestProperty("Accept", "application/json");
                         String json = new BufferedReader(new InputStreamReader(httpConnection.getInputStream(), StandardCharsets.UTF_8))
                                 .lines().collect(Collectors.joining("\n"));
-                        configs[i] = new Gson().fromJson(json, Properties.class);
-                        Log.i("Terraria","TerrariaApp.getProperties() thread got it:\n" + json);
+                        configs[tcunr] = new Gson().fromJson(json, Properties.class);
+                        Log.i("Terraria", "TerrariaApp.getProperties() thread got it:\n" + json);
                     } catch (Exception e) {
                         // Now tell the UI thread to show the dialog and end thread
                         runOnUiThread(() -> {
@@ -265,17 +262,16 @@ public class TerrariaApp extends AppCompatActivity {
                         });
                     }
                 }
-                configs[i].setTcu(name);
-                configs[i].setMockPostfix(pfx);
+                configs[tcunr].setTcuName(name);
+                configs[tcunr].setMockPostfix(pfx);
+                mTabTitles[tcunr].setVisibility(View.VISIBLE);
+                mTabTitles[tcunr].setText(configs[tcunr].getTcuName() + (MOCK[tcunr] ? " (Test)" : ""));
             }
             Log.i("Terraria","TerrariaApp.getProperties() thread got all properties");
             // Now tell the UI thread to continue
             runOnUiThread(() -> {
                 mTabbar.setVisibility(View.VISIBLE);
-                for (int i = 0; i < nrOfTerraria; i++) {
-                    mTabTitles[i].setVisibility(View.VISIBLE);
-                    mTabTitles[i].setText(configs[i].getTcu() + (MOCK ? " (Test)" : ""));
-                }
+                curTabNr = 1;
                 btnContinue.callOnClick();
                 wait.dismiss();
             });
@@ -283,28 +279,26 @@ public class TerrariaApp extends AppCompatActivity {
         Log.i("Terraria", "TerrariaApp.getProperties() end");
     }
 
-    public String isConnected() {
+    public String isConnected(int tcunr) {
         Log.i("Terraria", "TerrariaApp.isConnected() start");
-        final String[] message = {""};
+        String message = "";
         // Executed in separate thread
         Runtime runtime = Runtime.getRuntime();
-        for (int i = 0; i < nrOfTerraria; i++) {
-            String ip = sp.getString("terrarium" + (i + 1) + "_ip_address", "x");
-            try {
-                Log.i("Terraria", "Pinging " + ip + "...");
-                Process ipProcess = runtime.exec("/system/bin/ping -c 1 -w 1 " + ip);
-                int exitValue = ipProcess.waitFor();
-                Log.i("Terraria", ip + " " + (exitValue == 0 ? "found" : "not found"));
-                if (exitValue != 0) {
-                    message[0] += "Terrarium Control Unit is niet bereikbaar op IP adres " + ip + "\n";
-                }
-                connected[i] = (exitValue == 0);
-                ipProcess.destroy();
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+        String ip = sp.getString("terrarium" + (tcunr + 1) + "_ip_address", "x");
+        try {
+            Log.i("Terraria", "Pinging " + ip + "...");
+            Process ipProcess = runtime.exec("/system/bin/ping -c 1 -w 1 " + ip);
+            int exitValue = ipProcess.waitFor();
+            Log.i("Terraria", ip + " " + (exitValue == 0 ? "found" : "not found"));
+            if (exitValue != 0) {
+                message = TerrariaApp.configs[tcunr].getTcuName() + " is niet bereikbaar op IP adres " + ip;
             }
+            connected[tcunr] = (exitValue == 0);
+            ipProcess.destroy();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
         }
         Log.i("Terraria", "TerrariaApp.isConnected() end");
-        return message[0];
+        return message;
     }
 }

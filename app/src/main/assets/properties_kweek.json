@@ -1,7 +1,7 @@
 {
-  "tcu": "TERRARIUMPI",
+  "tcu": "TERRARIUM",
   "eeprom_write_count": 2,
-  "nr_of_timers": 18,
+  "nr_of_timers": 16,
   "nr_of_programs": 2,
   "devices": [
     {
@@ -15,43 +15,18 @@
       "lc_counted": "false"
     },
     {
-      "device": "light3",
-      "nr_of_timers": 1,
-      "lc_counted": "false"
-    },
-    {
-      "device": "light4",
-      "nr_of_timers": 1,
-      "lc_counted": "false"
-    },
-    {
-      "device": "uvlight",
-      "nr_of_timers": 1,
-      "lc_counted": "true"
-    },
-    {
-      "device": "light6",
-      "nr_of_timers": 1,
-      "lc_counted": "false"
-    },
-    {
       "device": "fan_in",
-      "nr_of_timers": 1,
+      "nr_of_timers": 3,
       "lc_counted": "false"
     },
     {
       "device": "fan_out",
-      "nr_of_timers": 1,
+      "nr_of_timers": 3,
       "lc_counted": "false"
     },
     {
       "device": "sprayer",
       "nr_of_timers": 5,
-      "lc_counted": "false"
-    },
-    {
-      "device": "mist",
-      "nr_of_timers": 3,
       "lc_counted": "false"
     },
     {

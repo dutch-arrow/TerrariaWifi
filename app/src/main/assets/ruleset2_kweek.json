@@ -1,0 +1,51 @@
+{
+  "terrarium": 1,
+  "active": "no",
+  "from": "10:30",
+  "to": "22:15",
+  "temp_ideal": 27,
+  "rules": [
+    {
+      "value": -26,
+      "actions": [
+        {
+          "device": "fan_in",
+          "on_period": -2
+        },
+        {
+          "device": "no device",
+          "on_period": 0
+        },
+        {
+          "device": "no device",
+          "on_period": 0
+        },
+        {
+          "device": "no device",
+          "on_period": 0
+        }
+      ]
+    },
+    {
+      "value": 29,
+      "actions": [
+        {
+          "device": "fan_out",
+          "on_period": -2
+        },
+        {
+          "device": "no device",
+          "on_period": 0
+        },
+        {
+          "device": "no device",
+          "on_period": 0
+        },
+        {
+          "device": "no device",
+          "on_period": 0
+        }
+      ]
+    }
+  ]
+}

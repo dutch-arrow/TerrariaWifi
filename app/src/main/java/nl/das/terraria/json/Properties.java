@@ -18,6 +18,8 @@ public class Properties {
     @SerializedName("devices")
     @Expose
     private List<Device> devices = null;
+
+    private transient String tcuName;
     private transient String mockPostfix;
 
     public String getTcu() { return tcu; }
@@ -49,6 +51,10 @@ public class Properties {
     }
 
     public String getMockPostfix() { return mockPostfix; }
+
+    public void setTcuName(String tcuName) { this.tcuName = tcuName;}
+
+    public String getTcuName() { return tcuName; }
 
     public void setMockPostfix(String mockPostfix) { this.mockPostfix = mockPostfix; }
 

@@ -392,15 +392,15 @@ public class RulesetFragment extends Fragment {
     private void getRuleset() {
         wait = new WaitSpinner(requireContext());
         wait.start();
-        if (TerrariaApp.MOCK) {
+        if (TerrariaApp.MOCK[tabnr - 1]) {
             Log.i("Terraria","Mock Ruleset " + currentRsNr + " response");
             try {
                 Gson gson = new Gson();
                 String response = new BufferedReader(
-                        new InputStreamReader(getResources().getAssets().open("ruleset" + currentRsNr + ".json")))
+                        new InputStreamReader(getResources().getAssets().open("ruleset" + currentRsNr + "_" + TerrariaApp.configs[tabnr - 1].getMockPostfix() + ".json")))
                         .lines().collect(Collectors.joining("\n"));
                 ruleset = gson.fromJson(response.toString(), Ruleset.class);
-                Log.i("Terraria", "Retrieved ruleset " + currentRsNr + ":\n" + response.toString());
+                Log.i("Terraria", "Retrieved ruleset " + currentRsNr);
                 updateRuleset();
                 currentRlNr = 0;
                 updateRule();

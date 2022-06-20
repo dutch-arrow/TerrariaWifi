@@ -1,0 +1,32 @@
+[
+  {
+    "device": "fan_out",
+    "index": 1,
+    "hour_on": 9,
+    "minute_on": 0,
+    "hour_off": 9,
+    "minute_off": 15,
+    "repeat": 1,
+    "period": 0
+  },
+  {
+    "device": "fan_out",
+    "index": 2,
+    "hour_on": 14,
+    "minute_on": 0,
+    "hour_off": 14,
+    "minute_off": 15,
+    "repeat": 1,
+    "period": 0
+  },
+  {
+    "device": "fan_out",
+    "index": 3,
+    "hour_on": 19,
+    "minute_on": 0,
+    "hour_off": 19,
+    "minute_off": 15,
+    "repeat": 1,
+    "period": 0
+  }
+]

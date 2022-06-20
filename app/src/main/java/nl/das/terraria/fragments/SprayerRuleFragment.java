@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import nl.das.terraria.R;
@@ -176,12 +175,12 @@ public class SprayerRuleFragment extends Fragment {
     private void getDryingRule() {
         wait = new WaitSpinner(requireContext());
         wait.start();
-        if (TerrariaApp.MOCK) {
+        if (TerrariaApp.MOCK[tabnr - 1]) {
             Log.i("Terraria","Mock Sparyerrule response");
             try {
                 Gson gson = new Gson();
                 String response = new BufferedReader(
-                        new InputStreamReader(getResources().getAssets().open("sprayer_rule.json")))
+                        new InputStreamReader(getResources().getAssets().open("sprayer_rule_" + TerrariaApp.configs[tabnr - 1].getMockPostfix() + ".json")))
                         .lines().collect(Collectors.joining("\n"));
                 dryingRule = gson.fromJson(response.toString(), SprayerRule.class);
                 Log.i("Terraria", "Retrieved dryingrule");
