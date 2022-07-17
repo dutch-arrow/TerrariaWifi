@@ -10,6 +10,9 @@
         android:id="@+id/menu_program_item"
         android:title="@string/mitRuleset" />
     <item
+        android:id="@+id/menu_history_item"
+        android:title="@string/mitHistory" />
+    <item
         android:id="@+id/menu_config_item"
         android:title="@string/mitConfig" />
     <item

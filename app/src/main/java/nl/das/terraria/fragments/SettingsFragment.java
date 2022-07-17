@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 
 import nl.das.terraria.R;
 import nl.das.terraria.TerrariaApp;
+import nl.das.terraria.dialogs.NotificationDialog;
 
 public class SettingsFragment extends Fragment {
     private static final String IPV4_PATTERN = "^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\\.(?!$)|$)){4}$";
@@ -35,20 +36,25 @@ public class SettingsFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Log.i("Terraria", "SettingsFragment.onCreateView() start");
         View v =  inflater.inflate(R.layout.fragment_settings, container, false);
         imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        Log.i("Terraria", "SettingsFragment.onCreateView() end");
         return v;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.i("Terraria", "SettingsFragment.onViewCreated() start");
         btnSave = view.findViewById(R.id.settings_btnSave);
         btnSave.setEnabled(false);
         btnSave.setOnClickListener(v -> {
             btnSave.requestFocusFromTouch();
             Log.i("Terraria", "Save settings");
-            saveSettings();
+            if (saveSettings()) {
+                ((TerrariaApp) requireContext()).getProperties();
+            }
             btnSave.setEnabled(false);
         });
         sharedPreferences = requireActivity().getApplicationContext().getSharedPreferences("TerrariaApp", 0);
@@ -58,11 +64,11 @@ public class SettingsFragment extends Fragment {
             int r = getResources().getIdentifier("tvwTerrarium" + tnr, "id", "nl.das.terraria2");
             TextView tvw = view.findViewById(r);
             tvw.setVisibility(View.VISIBLE);
-            tvw.setText(TerrariaApp.configs[i].getTcuName() + " IP adres");
+            tvw.setText(getString(R.string.ipName, TerrariaApp.configs[i].getTcuName()));
             r = getResources().getIdentifier("edtTerrarium" + tnr, "id", "nl.das.terraria2");
             EditText etv = view.findViewById(r);
             etv.setVisibility(View.VISIBLE);
-            etv.setText(sharedPreferences.getString("terrarium" + tnr + "_ip_address", "192.168.xxx.xxx"));
+            etv.setText(sharedPreferences.getString("terrarium" + tnr + "_ip_address", "192.168.178.xxx"));
             etv.setOnEditorActionListener((v, actionId, event) -> {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     String value = String.valueOf(etv.getText()).trim();
@@ -75,14 +81,26 @@ public class SettingsFragment extends Fragment {
             });
             edt[i] = etv;
         }
+        saveSettings();
+        Log.i("Terraria", "SettingsFragment.onViewCreated() end");
     }
 
-    private void saveSettings() {
+    private boolean saveSettings() {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         for (int i = 0; i < TerrariaApp.nrOfTerraria; i++) {
             editor.putString("terrarium" + (i + 1) + "_ip_address", edt[i].getText().toString());
         }
         editor.apply();
+        boolean ok = true;
+        for (int i = 0; i < TerrariaApp.nrOfTerraria; i++) {
+            String msg = ((TerrariaApp) requireContext()).isConnected(i);
+            if (msg.length() > 0) {
+                ok = false;
+                NotificationDialog ndlg = new NotificationDialog(getContext(), "Error", msg);
+                ndlg.show();
+            }
+        }
+        return ok;
     }
 
     private boolean checkIPAddress(EditText field, String ipaddress) {

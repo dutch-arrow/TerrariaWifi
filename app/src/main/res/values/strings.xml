@@ -61,4 +61,12 @@
     <string name="dr_lblDelay2">uitgezet wordt wacht dan</string>
     <string name="dr_lblDelay3">en dan</string>
     <string name="dr_lblAnd">en</string>
+    <string name="hisTitle">Schakel en temperatuur historie op dag</string>
+    <string name="his_btnOk">Gereed</string>
+    <string name="mitHistory">Historie</string>
+    <string name="tabName">%1$s%2$s</string>
+    <string name="ipName">%1$s IP adres</string>
+    <string name="temperature">%1$d</string>
+    <string name="humidity">%1$d</string>
+    <string name="hoursOn">%1$d</string>
 </resources>

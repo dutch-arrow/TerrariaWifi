@@ -38,6 +38,7 @@ import java.io.StringWriter;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import nl.das.terraria.R;
@@ -55,6 +56,7 @@ import nl.das.terraria.json.States;
 public class StateFragment extends Fragment {
 
     private int tabnr;
+    private boolean trace = false;
     private String curIPAddress;
     private Sensors sensors;
     private WaitSpinner wait;
@@ -64,8 +66,6 @@ public class StateFragment extends Fragment {
     private TextView tvwTTemp;
     private TextView tvwRHum;
     private TextView tvwRTemp;
-    private ImageButton btnRecord;
-    private ImageButton btnView;
 
     public StateFragment() {
         // Required empty public constructor
@@ -120,36 +120,7 @@ public class StateFragment extends Fragment {
         curIPAddress = requireContext().getSharedPreferences("TerrariaApp", 0).getString("terrarium" + tabnr + "_ip_address", "");
         // Header
 
-        btnRecord = view.findViewById(R.id.trm_st_btnRecord);
-        btnRecord.setOnClickListener(v -> {
-            if (btnRecord.getTag().toString().equalsIgnoreCase("start")) {
-                Log.i("Terraria", "Start recording...");
-                record(true);
-                btnRecord.setImageResource(R.drawable.stop_icon);
-                btnRecord.setTag("stop");
-            } else {
-                Log.i("Terraria", "Stop recording");
-                record(false);
-                btnRecord.setImageResource(R.drawable.play_icon);
-                btnRecord.setTag("start");
-            }
-        });
-
-        btnView = view.findViewById(R.id.trm_st_btnView);
-        btnView.setOnClickListener(v -> {
-            Log.i("Terraria", "view history");
-            DialogFragment dlg = new HistoryDialogFragment();
-            dlg.show(getParentFragmentManager(),"History");
-        });
-
         Log.i("Terraria", TerrariaApp.configs[tabnr - 1].getTcu());
-        if (TerrariaApp.configs[tabnr - 1].getTcu().endsWith("PI")) {
-            btnRecord.setVisibility(View.VISIBLE);
-            btnView.setVisibility(View.VISIBLE);
-        } else {
-            btnRecord.setVisibility(View.INVISIBLE);
-            btnView.setVisibility(View.INVISIBLE);
-        }
 
         Button btn = view.findViewById(R.id.trm_refreshButton);
         btn.setOnClickListener(v -> {
@@ -203,7 +174,7 @@ public class StateFragment extends Fragment {
                     FragmentManager fm = requireActivity().getSupportFragmentManager();
                     // SETS the target fragment for use later when sending results
                     fm.setFragmentResultListener("reset", this, (requestKey, result) -> {
-                        tvwHours.setText(result.getInt("hours") + "");
+                        tvwHours.setText(result.getInt("hours"));
                         onResetHoursSave(d.getDevice(), result.getInt("hours"));
                     });
                     dlgReset.show(fm, "ResetHoursDialogFragment");
@@ -300,7 +271,7 @@ public class StateFragment extends Fragment {
                         StringWriter sw = new StringWriter();
                         PrintWriter pw = new PrintWriter(sw);
                         error.printStackTrace(pw);
-                        Log.i("Terraria", "loadSensors error:\n" + sw.toString());
+                        Log.i("Terraria", "loadSensors error:\n" + sw);
                     } else {
                         Log.i("Terraria", "Error " + error.getMessage());
                         new NotificationDialog(requireContext(), "Error", "Kontakt met Terrarium Control Unit verloren.").show();
@@ -317,10 +288,10 @@ public class StateFragment extends Fragment {
         tvwDateTime.setText(sensors.getClock());
         for (Sensor sensor: sensors.getSensors()) {
             if (sensor.getLocation().equalsIgnoreCase("room")) {
-                tvwRTemp.setText(sensor.getTemperature() + "");
-                tvwRHum.setText(sensor.getHumidity() + "");
+                tvwRTemp.setText(getString(R.string.temperature, sensor.getTemperature()));
+                tvwRHum.setText(getString(R.string.humidity, sensor.getHumidity()));
             } else if (sensor.getLocation().equalsIgnoreCase("terrarium")) {
-                tvwTTemp.setText(sensor.getTemperature() + "");
+                tvwTTemp.setText(getString(R.string.temperature, sensor.getTemperature()));
             }
         }
     }
@@ -349,7 +320,8 @@ public class StateFragment extends Fragment {
                             Gson gson = new Gson();
                             try {
                                 States states = gson.fromJson(response1.toString(), States.class);
-                                Log.i("Terraria", "Retrieved " + states.getStates().size() + " states");
+                                Log.i("Terraria", "Retrieved " + states.getStates().size() + " states and trace is " + states.getTrace());
+                                trace = states.getTrace().equalsIgnoreCase("on");
                                 updateState(states.getStates());
                             } catch (JsonSyntaxException e) {
                                 new NotificationDialog(requireContext(), "Error", "State response contains errors:\n" + e.getMessage()).show();
@@ -361,7 +333,7 @@ public class StateFragment extends Fragment {
                                 StringWriter sw = new StringWriter();
                                 PrintWriter pw = new PrintWriter(sw);
                                 error.printStackTrace(pw);
-                                Log.i("Terraria", "loadState error:\n" + sw.toString());
+                                Log.i("Terraria", "loadState error:\n" + sw);
                             } else {
                                 Log.i("Terraria", "Error " + error.getMessage());
                                 new NotificationDialog(requireContext(), "Error", "Kontakt met Terrarium Control Unit verloren.").show();
@@ -389,7 +361,7 @@ public class StateFragment extends Fragment {
                                 StringWriter sw = new StringWriter();
                                 PrintWriter pw = new PrintWriter(sw);
                                 error.printStackTrace(pw);
-                                Log.i("Terraria", "loadState error:\n" + sw.toString());
+                                Log.i("Terraria", "loadState error:\n" + sw);
                             } else {
                                 Log.i("Terraria", "Error " + error.getMessage());
                                 new NotificationDialog(requireContext(), "Error", "Kontakt met Terrarium Control Unit verloren.").show();
@@ -418,7 +390,7 @@ public class StateFragment extends Fragment {
                     state.setText(translateEndTime(s.getEndTime()));
                     if (d.isLifecycle()) {
                         TextView h = v.findViewById(R.id.trm_tvwHours_lcc);
-                        h.setText(s.getHoursOn() + "");
+                        h.setText(getString(R.string.hoursOn, s.getHoursOn()));
                     }
                 }
             }
@@ -437,9 +409,9 @@ public class StateFragment extends Fragment {
                 response1 -> {
                     Log.i("Terraria", "The clock has been set");
                     try {
-                        SimpleDateFormat fmtin = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                        SimpleDateFormat fmtin = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
                         Date dtin = fmtin.parse(dateTime);
-                        SimpleDateFormat fmtout = new SimpleDateFormat("dd-MMM-yyyy HH:mm");
+                        SimpleDateFormat fmtout = new SimpleDateFormat("dd-MMM-yyyy HH:mm", Locale.US);
                         String dtout = fmtout.format(dtin);
                         tvwDateTime.setText(dtout);
                     }
@@ -498,7 +470,7 @@ public class StateFragment extends Fragment {
     public void record(boolean start) {
         final WaitSpinner wait = new WaitSpinner(requireActivity());
         wait.start();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         String url = "http://" + curIPAddress + "/trace/" + (start ? "on" : "off");
         Log.i("Terraria","Execute POST request " + url);
         VoidRequest voidRequest = new VoidRequest(Request.Method.POST, url, null,
@@ -519,13 +491,12 @@ public class StateFragment extends Fragment {
     public void viewRecording(String type) { // type = "state" or "temperature"
         final WaitSpinner wait = new WaitSpinner(requireActivity());
         wait.start();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         String url = "http://" + curIPAddress + "/history/" + type;
         Log.i("Terraria","Execute GET request " + url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 (Response.Listener<String>) response1 -> {
                     Log.i("Terraria", "Get the recording of " + type);
-                    response1.toString();
                     wait.dismiss();
                 },
                 (Response.ErrorListener) error -> {

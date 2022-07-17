@@ -5,15 +5,21 @@
       <map>
         <entry key="../../../../../layout/custom_preview.xml" value="0.1953125" />
         <entry key="app/src/main/res/drawable/dialog_border.xml" value="0.19635416666666666" />
+        <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.2305" />
+        <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.2305" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.5" />
         <entry key="app/src/main/res/layout/drying_rule_frg.xml" value="0.3296875" />
         <entry key="app/src/main/res/layout/dynamic_button.xml" value="0.20364583333333333" />
+        <entry key="app/src/main/res/layout/file_dropdown.xml" value="0.22395833333333334" />
+        <entry key="app/src/main/res/layout/filelist.xml" value="0.22395833333333334" />
         <entry key="app/src/main/res/layout/four_timers_frg.xml" value="0.5" />
         <entry key="app/src/main/res/layout/fragment_device_state.xml" value="0.14375" />
+        <entry key="app/src/main/res/layout/fragment_history.xml" value="0.5" />
         <entry key="app/src/main/res/layout/fragment_rulesets.xml" value="0.5" />
         <entry key="app/src/main/res/layout/fragment_settings.xml" value="0.5" />
         <entry key="app/src/main/res/layout/fragment_state.xml" value="0.4416058394160584" />
         <entry key="app/src/main/res/layout/fragment_timers.xml" value="0.33" />
+        <entry key="app/src/main/res/layout/history_dlg.xml" value="0.22407503908285564" />
         <entry key="app/src/main/res/layout/rule_actions_frg.xml" value="0.38229166666666664" />
         <entry key="app/src/main/res/layout/ruleset_frg.xml" value="0.33" />
         <entry key="app/src/main/res/layout/spinner_list.xml" value="0.3296875" />
@@ -21,6 +27,9 @@
         <entry key="app/src/main/res/layout/trm_timer_device_fragment.xml" value="0.20677083333333332" />
         <entry key="app/src/main/res/layout/trm_timer_fragment.xml" value="0.3296875" />
         <entry key="app/src/main/res/layout/trm_timers_frg.xml" value="0.4062772449869224" />
+        <entry key="app/src/main/res/menu/main_menu.xml" value="0.33" />
+        <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.2305" />
+        <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.2305" />
       </map>
     </option>
   </component>
