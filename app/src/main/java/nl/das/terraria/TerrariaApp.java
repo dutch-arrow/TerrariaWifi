@@ -8,11 +8,8 @@ import androidx.appcompat.widget.Toolbar;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
-import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -61,7 +58,6 @@ public class TerrariaApp extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i("Terraria", "TerrariaApp.onCreate() start");
         setContentView(layout.activity_main);
 
         // Get the configuration from the properties file
@@ -74,7 +70,7 @@ public class TerrariaApp extends AppCompatActivity {
         // Get the properties from the TCU's
         for (int i = 0; i < nrOfTerraria; i++) {
             int tabnr = i + 1;
-            int r = getResources().getIdentifier("tab" + tabnr, "id", "nl.das.terraria2");
+            int r = getResources().getIdentifier("tab" + tabnr, "id", "nl.das.terrariawifi");
             mTabTitles[i] = findViewById(r);
             configs[i] = new Properties();
             configs[i].setTcuName(config.getProperty("t" + tabnr +".tabtitle"));
@@ -88,13 +84,11 @@ public class TerrariaApp extends AppCompatActivity {
         Toolbar mTopToolbar = findViewById(id.main_toolbar);
         setSupportActionBar(mTopToolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
-        Log.i("Terraria", "TerrariaApp.onCreate() end");
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Log.i("Terraria", "TerrariaApp.onStart() start");
         boolean ok = false;
         // Check if the SharedPreferences are there and filled
         sp = getApplicationContext().getSharedPreferences("TerrariaApp", 0);
@@ -132,14 +126,12 @@ public class TerrariaApp extends AppCompatActivity {
             }
         }
         super.onStart();
-        Log.i("Terraria", "TerrariaApp.onStart() end");
     }
     /*
     This is the onClick method of the btn_coninue.
     It will be clicked by the background thread when the properties of the TCU are read.
      */
     public void go(View view) {
-        Log.i("Terraria", "TerrariaApp.go() button clicked");
         mTabbar.setVisibility(View.VISIBLE);
         curTabNr = 1;
         mTabTitles[curTabNr - 1].setTextColor(Color.WHITE);
@@ -152,7 +144,6 @@ public class TerrariaApp extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        Log.i("Terraria","TerrariaApp.onCreateOptionsMenu()");
         getMenuInflater().inflate(R.menu.main_menu, menu);
         this.menu = menu;
         return true;
@@ -160,7 +151,6 @@ public class TerrariaApp extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.i("Terraria","TerrariaApp.onOptionsItemSelected()");
         int id = item.getItemId();
         if (id == R.id.menu_state_item) {
             mTabbar.setVisibility(View.VISIBLE);
@@ -238,18 +228,15 @@ public class TerrariaApp extends AppCompatActivity {
         return config;
     }
     public void getProperties() {
-        Log.i("Terraria", "TerrariaApp.getProperties() start");
         Context ctx = this;
         wait = new WaitSpinner(this);
         wait.start();
         new Thread(() -> {
             // Executed in separate thread
             for (int tcunr = 0; tcunr < nrOfTerraria; tcunr++) {
-                Log.i("Terraria", "TerrariaApp.getProperties() thread start or tab " + (tcunr + 1));
                 String name = configs[tcunr].getTcuName();
                 String pfx = configs[tcunr].getMockPostfix();
                 if (MOCK[tcunr]) {
-                    Log.i("Terraria", "Mock Property response");
                     try {
                         Gson gson = new Gson();
                         String response = new BufferedReader(
@@ -257,13 +244,11 @@ public class TerrariaApp extends AppCompatActivity {
                                 .lines().collect(Collectors.joining("\n"));
                         configs[tcunr] = gson.fromJson(response, Properties.class);
                     } catch (IOException e) {
-                        Log.e("Terraria", e.getMessage());
                     }
                 } else {
                     try {
                         String ip = sp.getString("terrarium" + (tcunr + 1) + "_ip_address", "x");
                         URL url = new URL("http://" + ip + "/properties");
-                        Log.i("Terraria", "TerrariaApp.getProperties() thread get properties from " + url);
                         HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
                         httpConnection.setRequestMethod("GET");
                         httpConnection.setRequestProperty("Accept", "application/json");
@@ -283,7 +268,6 @@ public class TerrariaApp extends AppCompatActivity {
                 configs[tcunr].setTcuName(name);
                 configs[tcunr].setMockPostfix(pfx);
             }
-            Log.i("Terraria","TerrariaApp.getProperties() thread got all properties");
             // Now tell the UI thread to continue
             runOnUiThread(() -> {
                 mTabbar.setVisibility(View.VISIBLE);
@@ -296,20 +280,16 @@ public class TerrariaApp extends AppCompatActivity {
                 wait.dismiss();
             });
         }).start();
-        Log.i("Terraria", "TerrariaApp.getProperties() end");
     }
 
     public String isConnected(int tcunr) {
-        Log.i("Terraria", "TerrariaApp.isConnected() start");
         String message = "";
         // Executed in separate thread
         Runtime runtime = Runtime.getRuntime();
         String ip = sp.getString("terrarium" + (tcunr + 1) + "_ip_address", "x");
         try {
-            Log.i("Terraria", "Pinging " + ip + "...");
             Process ipProcess = runtime.exec("/system/bin/ping -c 1 -w 1 " + ip);
             int exitValue = ipProcess.waitFor();
-            Log.i("Terraria", ip + " " + (exitValue == 0 ? "found" : "not found"));
             if (exitValue != 0) {
                 message = TerrariaApp.configs[tcunr].getTcuName() + " is niet bereikbaar op IP adres " + ip;
             }
@@ -318,7 +298,6 @@ public class TerrariaApp extends AppCompatActivity {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
-        Log.i("Terraria", "TerrariaApp.isConnected() end");
         return message;
     }
 }

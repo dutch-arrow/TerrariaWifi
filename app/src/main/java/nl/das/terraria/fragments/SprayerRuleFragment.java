@@ -2,7 +2,6 @@ package nl.das.terraria.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,14 +77,12 @@ public class SprayerRuleFragment extends Fragment {
         btnSaveDR.setEnabled(false);
         btnSaveDR.setOnClickListener(v -> {
             btnSaveDR.requestFocusFromTouch();
-            Log.i("Terraria", "Save");
             saveDryingRule();
             btnSaveDR.setEnabled(false);
         });
         Button btnRefreshDR = view.findViewById(R.id.dr_btnRefresh);
         btnRefreshDR.setEnabled(true);
         btnRefreshDR.setOnClickListener(v -> {
-            Log.i("Terraria", "Refresh");
             getDryingRule();
             btnSaveDR.setEnabled(false);
         });
@@ -176,30 +173,25 @@ public class SprayerRuleFragment extends Fragment {
         wait = new WaitSpinner(requireContext());
         wait.start();
         if (TerrariaApp.MOCK[tabnr - 1]) {
-            Log.i("Terraria","Mock Sparyerrule response");
             try {
                 Gson gson = new Gson();
                 String response = new BufferedReader(
                         new InputStreamReader(getResources().getAssets().open("sprayer_rule_" + TerrariaApp.configs[tabnr - 1].getMockPostfix() + ".json")))
                         .lines().collect(Collectors.joining("\n"));
                 dryingRule = gson.fromJson(response.toString(), SprayerRule.class);
-                Log.i("Terraria", "Retrieved dryingrule");
                 updateDryingRule();
                 wait.dismiss();
             } catch (IOException e) {
                 wait.dismiss();
-                Log.e("Terraria", e.getMessage());
             }
         } else {
             String url = "http://" + curIPAddress + "/sprayerrule";
-            Log.i("Terraria", "Execute GET request " + url);
             // Request sensor readings.
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                     response1 -> {
                         Gson gson = new Gson();
                         try {
                             dryingRule = gson.fromJson(response1.toString(), SprayerRule.class);
-                            Log.i("Terraria", "Retrieved dryingrule");
                             updateDryingRule();
                             wait.dismiss();
                         } catch (JsonSyntaxException e) {
@@ -211,9 +203,7 @@ public class SprayerRuleFragment extends Fragment {
                             StringWriter sw = new StringWriter();
                             PrintWriter pw = new PrintWriter(sw);
                             error.printStackTrace(pw);
-                            Log.i("Terraria", "getDryingRule error:\n" + sw.toString());
                         } else {
-                            Log.i("Terraria", "Error " + error.getMessage());
                             new NotificationDialog(requireContext(), "Error", "Kontakt met Control Unit verloren.").show();
                         }
                         wait.dismiss();
@@ -229,7 +219,6 @@ public class SprayerRuleFragment extends Fragment {
         edtDelay.setText(value + "");
         for (int i = 0; i < 4; i++) {
             Action a = dryingRule.getActions().get(i);
-            Log.i("Terraria", "Drying rule action " + i + " device '" + a.getDevice() + "' period " + a.getOnPeriod());
             if (a.getDevice().equalsIgnoreCase("fan_in")) {
                 edtFanInPeriod.setText(a.getOnPeriod() / 60 + "");
             } else if (a.getDevice().equalsIgnoreCase("fan_out")) {
@@ -242,23 +231,18 @@ public class SprayerRuleFragment extends Fragment {
         wait = new WaitSpinner(requireContext());
         wait.start();
         String url = "http://" + curIPAddress + "/sprayerrule";
-        Log.i("Terraria", "Execute PUT request " + url);
         dryingRule.getActions().get(2).setDevice("no device");
         dryingRule.getActions().get(2).setOnPeriod(0);
         dryingRule.getActions().get(3).setDevice("no device");
         dryingRule.getActions().get(3).setOnPeriod(0);
         Gson gson = new Gson();
         String json = gson.toJson(dryingRule);
-        Log.i("Terraria", "JSON sent:");
-        Log.i("Terraria", json);
         VoidRequest req = new VoidRequest(Request.Method.PUT, url, json,
                 response -> {
-                    Log.i("Terrarium", "Sprayer rule has been saved.");
                     wait.dismiss();
                 },
                 error -> {
                     wait.dismiss();
-                    Log.i("Terrarium", "Error " + error.getMessage());
                     new NotificationDialog(requireActivity(), "Error", "Kontakt met Control Unit verloren.").show();
                 }
         );

@@ -36,22 +36,18 @@ public class SettingsFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        Log.i("Terraria", "SettingsFragment.onCreateView() start");
         View v =  inflater.inflate(R.layout.fragment_settings, container, false);
         imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        Log.i("Terraria", "SettingsFragment.onCreateView() end");
         return v;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Log.i("Terraria", "SettingsFragment.onViewCreated() start");
         btnSave = view.findViewById(R.id.settings_btnSave);
         btnSave.setEnabled(false);
         btnSave.setOnClickListener(v -> {
             btnSave.requestFocusFromTouch();
-            Log.i("Terraria", "Save settings");
             if (saveSettings()) {
                 ((TerrariaApp) requireContext()).getProperties();
             }
@@ -59,13 +55,14 @@ public class SettingsFragment extends Fragment {
         });
         sharedPreferences = requireActivity().getApplicationContext().getSharedPreferences("TerrariaApp", 0);
         edt = new EditText[TerrariaApp.nrOfTerraria];
+        Log.i("Terraria",getResources().getResourcePackageName(R.id.tvwTerrarium1));
         for (int i = 0; i < TerrariaApp.nrOfTerraria; i++) {
             int tnr = i + 1;
-            int r = getResources().getIdentifier("tvwTerrarium" + tnr, "id", "nl.das.terraria2");
+            int r = getResources().getIdentifier("tvwTerrarium" + tnr, "id", "nl.das.terrariawifi");
             TextView tvw = view.findViewById(r);
             tvw.setVisibility(View.VISIBLE);
             tvw.setText(getString(R.string.ipName, TerrariaApp.configs[i].getTcuName()));
-            r = getResources().getIdentifier("edtTerrarium" + tnr, "id", "nl.das.terraria2");
+            r = getResources().getIdentifier("edtTerrarium" + tnr, "id", "nl.das.terrariawifi");
             EditText etv = view.findViewById(r);
             etv.setVisibility(View.VISIBLE);
             etv.setText(sharedPreferences.getString("terrarium" + tnr + "_ip_address", "192.168.178.xxx"));
@@ -82,7 +79,6 @@ public class SettingsFragment extends Fragment {
             edt[i] = etv;
         }
         saveSettings();
-        Log.i("Terraria", "SettingsFragment.onViewCreated() end");
     }
 
     private boolean saveSettings() {

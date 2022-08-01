@@ -22,7 +22,6 @@ public class WaitSpinner {
     }
 
     public void start() {
-        Log.i("Terraria", "WaitSpinner started");
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = LayoutInflater.from(context);
         builder.setView(inflater.inflate(R.layout.wait_dlg, null));
@@ -33,14 +32,13 @@ public class WaitSpinner {
     }
 
     public void dismiss() {
-        Log.i("Terraria", "WaitSpinner dismissed");
         waitSpinner.dismiss();
     }
     /**
      * To resize the size of this dialog
      */
     private void resizeDialog() {
-             Window window = waitSpinner.getWindow();
+            Window window = waitSpinner.getWindow();
             if (context == null || window == null) return;
             DisplayMetrics displayMetrics = new DisplayMetrics();
             ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRealMetrics(displayMetrics);

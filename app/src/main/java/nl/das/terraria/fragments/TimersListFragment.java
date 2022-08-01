@@ -8,7 +8,6 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -91,7 +90,6 @@ public class TimersListFragment extends Fragment {
         btnSave.setEnabled(false);
         btnSave.setOnClickListener(v -> {
             btnSave.requestFocusFromTouch();
-            Log.i("Terraria", "Save timers for device " + deviceID);
             saveTimers();
             imm.hideSoftInputFromWindow(btnSave.getWindowToken(), 0);
             btnSave.setEnabled(false);
@@ -99,7 +97,6 @@ public class TimersListFragment extends Fragment {
         btnRefresh = view.findViewById(R.id.ti_btnRefresh);
         btnRefresh.setEnabled(true);
         btnRefresh.setOnClickListener(v -> {
-            Log.i("Terraria", "Refresh timers for device " + deviceID);
             getTimers();
             imm.hideSoftInputFromWindow(btnRefresh.getWindowToken(), 0);
             btnSave.setEnabled(false);
@@ -116,7 +113,6 @@ public class TimersListFragment extends Fragment {
                         String value = String.valueOf(edtTimeOn[nr].getText()).trim();
                         int hr = Utils.getH(value);
                         int min = Utils.getM(value);
-                        Log.i("Terraria", "EditorAction: Save hourOn=" + hr + " minuteOn=" + min);
                         Objects.requireNonNull(timers.get(deviceID))[nr].setHourOn(hr);
                         Objects.requireNonNull(timers.get(deviceID))[nr].setMinuteOn(min);
                         edtTimeOff[nr].requestFocus();
@@ -131,7 +127,6 @@ public class TimersListFragment extends Fragment {
                         String value = String.valueOf(edtTimeOn[nr].getText()).trim();
                         int hr = Utils.getH(value);
                         int min = Utils.getM(value);
-                        Log.i("Terraria", "FocusChange: Save hourOn=" + hr + " minuteOn=" + min);
                         Objects.requireNonNull(timers.get(deviceID))[nr].setHourOn(hr);
                         Objects.requireNonNull(timers.get(deviceID))[nr].setMinuteOn(min);
                         btnSave.setEnabled(true);
@@ -147,7 +142,6 @@ public class TimersListFragment extends Fragment {
                         String value = String.valueOf(edtTimeOff[nr].getText()).trim();
                         int hr = Utils.getH(value);
                         int min = Utils.getM(value);
-                        Log.i("Terraria", "EditorAction: Save hourOff=" + hr + " minuteOff=" + min);
                         Objects.requireNonNull(timers.get(deviceID))[nr].setHourOff(hr);
                         Objects.requireNonNull(timers.get(deviceID))[nr].setMinuteOff(min);
                         if (value.length() > 0) {
@@ -166,7 +160,6 @@ public class TimersListFragment extends Fragment {
                         String value = String.valueOf(edtTimeOff[nr].getText()).trim();
                         int hr = Utils.getH(value);
                         int min = Utils.getM(value);
-                        Log.i("Terraria", "FocusChange: Save hourOn=" + hr + " minuteOn=" + min);
                         Objects.requireNonNull(timers.get(deviceID))[nr].setHourOff(hr);
                         Objects.requireNonNull(timers.get(deviceID))[nr].setMinuteOff(min);
                         if (value.length() > 0) {
@@ -193,7 +186,6 @@ public class TimersListFragment extends Fragment {
                         edtRepeat[nr].setError("Herhaling moet 0 of 1 zijn.");
                     }
                     if (edtRepeat[nr].getError() == null) {
-                        Log.i("Terraria", "EditorAction: Save repeat=" + value);
                         Objects.requireNonNull(timers.get(deviceID))[nr].setRepeat(Integer.parseInt(value));
                         edtPeriod[nr].requestFocus();
                         btnSave.setEnabled(true);
@@ -214,7 +206,6 @@ public class TimersListFragment extends Fragment {
                         edtRepeat[nr].setError("Herhaling moet 0 of 1 zijn.");
                     }
                     if (edtRepeat[nr].getError() == null) {
-                        Log.i("Terraria", "FocusChange: Save repeat=" + value);
                         Objects.requireNonNull(timers.get(deviceID))[nr].setRepeat(Integer.parseInt(value));
                         btnSave.setEnabled(true);
                     }
@@ -236,7 +227,6 @@ public class TimersListFragment extends Fragment {
                         edtPeriod[nr].setError("Periode moet een getal tussen 0 en 3600 zijn.");
                     }
                     if (edtPeriod[nr].getError() == null) {
-                        Log.i("Terraria", "EditorAction: Save period="+ edtPeriod[nr].getText().toString());
                         Objects.requireNonNull(TimersListFragment.timers.get(deviceID))[nr].setPeriod(Integer.parseInt(value));
                         if (!value.equalsIgnoreCase("0")) {
                             edtTimeOff[nr].setText("");
@@ -262,7 +252,6 @@ public class TimersListFragment extends Fragment {
                         edtPeriod[nr].setError("Periode moet een getal tussen 0 en 3600 zijn.");
                     }
                     if (edtPeriod[nr].getError() == null) {
-                        Log.i("Terraria", "FocusChange: Save period="+ edtPeriod[nr].getText().toString());
                         Objects.requireNonNull(TimersListFragment.timers.get(deviceID))[nr].setPeriod(Integer.parseInt(value));
                         if (!value.equalsIgnoreCase("0")) {
                             edtTimeOff[nr].setText("");
@@ -286,7 +275,6 @@ public class TimersListFragment extends Fragment {
             edtTimeOff[i].setText(Utils.cvthm2string(Objects.requireNonNull(timers.get(deviceID))[i].getHourOff(), Objects.requireNonNull(timers.get(deviceID))[i].getMinuteOff()));
             edtRepeat[i].setText(Objects.requireNonNull(timers.get(deviceID))[i].getRepeat() + "");
             edtPeriod[i].setText(Objects.requireNonNull(timers.get(deviceID))[i].getPeriod() + "");
-            Log.i("Terraria", "timer " + i + " added");
         }
 
     }
@@ -295,24 +283,20 @@ public class TimersListFragment extends Fragment {
         wait = new WaitSpinner(requireContext());
         wait.start();
         if (TerrariaApp.MOCK[tabnr - 1]) {
-            Log.i("Terraria","Mock Timers for device '" + deviceID + "' response");
             try {
                 Gson gson = new Gson();
                 String response = new BufferedReader(
                         new InputStreamReader(getResources().getAssets().open("timers_" + deviceID + "_" + TerrariaApp.configs[tabnr - 1].getMockPostfix() + ".json")))
                         .lines().collect(Collectors.joining("\n"));
                 Timer[] devTimers = gson.fromJson(response.toString(), new TypeToken<Timer[]>() {}.getType());
-                Log.i("Terraria", "Retrieved " + devTimers.length + " timers for device " + deviceID);
                 timers.put(deviceID, devTimers);
                 updateTimers();
                 wait.dismiss();
             } catch (IOException e) {
                 wait.dismiss();
-                Log.e("Terraria", e.getMessage());
             }
         } else {
             String url = "http://" + curIPAddress + "/timers/" + deviceID;
-            Log.i("Terraria", "Execute GET request " + url);
             // Request sensor readings.
             JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
                     response1 -> {
@@ -320,7 +304,6 @@ public class TimersListFragment extends Fragment {
                         try {
                             Timer[] devTimers = gson.fromJson(response1.toString(), new TypeToken<Timer[]>() {
                             }.getType());
-                            Log.i("Terraria", "Retrieved " + devTimers.length + " timers for device " + deviceID);
                             timers.put(deviceID, devTimers);
                             updateTimers();
                             wait.dismiss();
@@ -333,9 +316,7 @@ public class TimersListFragment extends Fragment {
                             StringWriter sw = new StringWriter();
                             PrintWriter pw = new PrintWriter(sw);
                             error.printStackTrace(pw);
-                            Log.i("Terraria", "getTimers error:\n" + sw.toString());
                         } else {
-                            Log.i("Terraria", "Error " + error.getMessage());
                             new NotificationDialog(requireContext(), "Error", "Kontakt met Control Unit verloren.").show();
                         }
                         wait.dismiss();
@@ -350,19 +331,14 @@ public class TimersListFragment extends Fragment {
         wait = new WaitSpinner(requireContext());
         wait.start();
         String url = "http://" + curIPAddress + "/timers/" + deviceID;
-        Log.i("Terraria","Execute PUT request " + url);
         Gson gson = new Gson();
         String json = gson.toJson(timers.get(deviceID));
-        Log.i("Terraria","JSON sent:");
-        Log.i("Terraria",json);
         VoidRequest req = new VoidRequest(Request.Method.PUT, url, json,
                 response -> {
-                    Log.i("Terrarium", "The timers for device " + deviceID + " have been saved.");
                     wait.dismiss();
                 },
                 error -> {
                     wait.dismiss();
-                    Log.i("Terrarium","Error " + error.getMessage());
                     new NotificationDialog(requireActivity(), "Error", "Kontakt met Control Unit verloren.").show();
                 }
         );
@@ -371,7 +347,6 @@ public class TimersListFragment extends Fragment {
     }
 
     public boolean checkTime(EditText field) {
-        Log.i("Terrarium", "Check time input");
         String value = String.valueOf(field.getText()).trim();
         if (value.length() != 0) {
             String[] parts = value.split("\\.");
@@ -395,8 +370,6 @@ public class TimersListFragment extends Fragment {
             } else {
                 field.setError("Tijdopgave is niet juist. Formaat: hh.mm");
             }
-        } else {
-            Log.i("Terrarium", "No timevalue given.");
         }
         return field.getError() == null;
     }

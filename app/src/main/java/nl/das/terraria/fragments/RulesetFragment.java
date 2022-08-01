@@ -2,7 +2,6 @@ package nl.das.terraria.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -113,14 +112,12 @@ public class RulesetFragment extends Fragment {
         btnSave.setOnClickListener(v -> {
             btnSave.requestFocusFromTouch();
             imm.hideSoftInputFromWindow(btnSave.getWindowToken(), 0);
-            Log.i("Terraria", "Save");
             saveRuleset();
             btnSave.setEnabled(false);
         });
         btnRefresh = view.findViewById(R.id.rs_btnRefresh);
         btnRefresh.setOnClickListener(v -> {
             imm.hideSoftInputFromWindow(btnRefresh.getWindowToken(), 0);
-            Log.i("Terraria", "Refresh");
             getRuleset();
             btnSave.setEnabled(false);
         });
@@ -139,7 +136,6 @@ public class RulesetFragment extends Fragment {
                 imm.hideSoftInputFromWindow(edtFrom.getWindowToken(), 0);
                 if (checkTime(edtFrom)) {
                     String value = String.valueOf(edtFrom.getText()).trim();
-                    Log.i("Terraria", "EditorAction: Save from=" + value);
                     ruleset.setFrom(value);
                     edtTo.requestFocus();
                     btnSave.setEnabled(true);
@@ -151,7 +147,6 @@ public class RulesetFragment extends Fragment {
             if (!hasFocus) {
                 if (checkTime(edtFrom)) {
                     String value = String.valueOf(edtFrom.getText()).trim();
-                    Log.i("Terraria", "FocusChange: Save from=" + value);
                     ruleset.setFrom(value);
                     btnSave.setEnabled(true);
                 }
@@ -174,7 +169,6 @@ public class RulesetFragment extends Fragment {
             if (!hasFocus) {
                 if (checkTime(edtTo)) {
                     String value = String.valueOf(edtTo.getText()).trim();
-                    Log.i("Terraria", "FocusChange: Save from=" + value);
                     ruleset.setTo(value);
                     btnSave.setEnabled(true);
                 }
@@ -280,7 +274,6 @@ public class RulesetFragment extends Fragment {
                             edtActionPeriod[fa].setText("");
                             ruleset.getRules().get(rlnr).getActions().get(anr).setOnPeriod(0);
                             ruleset.getRules().get(rlnr).getActions().get(anr).setDevice("no device");
-                            Log.i("Terraria", "onItemSelected: fa=" + fa + " rlnr=" + rlnr + " anr=" + anr + " device=no device");
                             rbnActionPeriod[fa].setEnabled(false);
                             rbnActionPeriod[fa].setChecked(false);
                             edtActionPeriod[fa].setEnabled(false);
@@ -301,7 +294,6 @@ public class RulesetFragment extends Fragment {
                             tvwSeconds[fa].setTextColor(getResources().getColor(R.color.black, null));
                             String dev = devSpinner[position - 1];
                             ruleset.getRules().get(rlnr).getActions().get(anr).setDevice(dev);
-                            Log.i("Terraria", "onItemSelected: fa=" + fa + " rlnr=" + rlnr + " anr=" + anr + " device=" + dev);
                         }
                         lastPos[fa] = position;
                         userSelect[fa] = true;
@@ -316,7 +308,6 @@ public class RulesetFragment extends Fragment {
             rbnActionIdeal[a].setOnClickListener(v -> {
                 int rlnr = fa / 2; // 0->0, 1->0, 2->1, 3->1
                 int anr = fa % 2; // 0->0, 1->1, 2->0, 3->1
-                Log.i("Terraria", "rbnActionIdeal: fa=" + fa + " rlnr=" + rlnr + " anr=" + anr);
                 ruleset.getRules().get(rlnr).getActions().get(anr).setOnPeriod(-2);
                 edtActionPeriod[fa].setText("");
                 edtActionPeriod[fa].setEnabled(false);
@@ -376,7 +367,7 @@ public class RulesetFragment extends Fragment {
         int i = 0;
         for (Device d :  TerrariaApp.configs[tabnr - 1].getDevices()) {
             if (!d.getDevice().startsWith("light") && !d.getDevice().equalsIgnoreCase("uvlight")) {
-                int r = getResources().getIdentifier(d.getDevice(), "string", "nl.das.terraria2");
+                int r = getResources().getIdentifier(d.getDevice(), "string", "nl.das.terrariawifi");
                 devSpinner[i] = d.getDevice();
                 spn_items.add(getResources().getString(r));
                 i++;
@@ -393,14 +384,12 @@ public class RulesetFragment extends Fragment {
         wait = new WaitSpinner(requireContext());
         wait.start();
         if (TerrariaApp.MOCK[tabnr - 1]) {
-            Log.i("Terraria","Mock Ruleset " + currentRsNr + " response");
             try {
                 Gson gson = new Gson();
                 String response = new BufferedReader(
                         new InputStreamReader(getResources().getAssets().open("ruleset" + currentRsNr + "_" + TerrariaApp.configs[tabnr - 1].getMockPostfix() + ".json")))
                         .lines().collect(Collectors.joining("\n"));
                 ruleset = gson.fromJson(response.toString(), Ruleset.class);
-                Log.i("Terraria", "Retrieved ruleset " + currentRsNr);
                 updateRuleset();
                 currentRlNr = 0;
                 updateRule();
@@ -409,18 +398,15 @@ public class RulesetFragment extends Fragment {
                 wait.dismiss();
             } catch (IOException e) {
                 wait.dismiss();
-                Log.e("Terraria", e.getMessage());
             }
         } else {
             String url = "http://" + curIPAddress + "/ruleset/" + currentRsNr;
-            Log.i("Terraria", "Execute GET request " + url);
             // Request sensor readings.
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                     response1 -> {
                         Gson gson = new Gson();
                         try {
                             ruleset = gson.fromJson(response1.toString(), Ruleset.class);
-                            Log.i("Terraria", "Retrieved ruleset " + currentRsNr + ":\n" + response1.toString());
                             updateRuleset();
                             currentRlNr = 0;
                             updateRule();
@@ -436,9 +422,7 @@ public class RulesetFragment extends Fragment {
                             StringWriter sw = new StringWriter();
                             PrintWriter pw = new PrintWriter(sw);
                             error.printStackTrace(pw);
-                            Log.i("Terraria", "getRuleset error:\n" + sw.toString());
                         } else {
-                            Log.i("Terraria", "Error " + error.getMessage());
                             new NotificationDialog(requireContext(), "Error", "Kontakt met Control Unit verloren.").show();
                         }
                         wait.dismiss();
@@ -450,7 +434,6 @@ public class RulesetFragment extends Fragment {
     }
 
     private void updateRuleset() {
-        Log.i("Terraria", "updateRuleset() start");
         swActive.setChecked(ruleset.getActive().equalsIgnoreCase("yes"));
         String from, to;
         if (ruleset.getFrom().equalsIgnoreCase("00:00")) {
@@ -466,7 +449,6 @@ public class RulesetFragment extends Fragment {
         }
         edtTo.setText(to);
         edtIdeal.setText(ruleset.getTempIdeal() + "");
-        Log.i("Terraria", "updateRuleset() end");
     }
 
     private void updateRule() {
@@ -478,7 +460,6 @@ public class RulesetFragment extends Fragment {
         }
         for (int i = 0; i < NR_OF_ACTIONS; i++) {
             Action a = ruleset.getRules().get(currentRlNr).getActions().get(i);
-            Log.i("Terraria", "Ruleset " + currentRsNr + " rule " + currentRlNr + " action " + i + " device '" + a.getDevice() + "' period " + a.getOnPeriod());
             int nr = i + (currentRlNr * 2);
             int ix = 0;
             if (!a.getDevice().equalsIgnoreCase("no device")) {
@@ -486,7 +467,7 @@ public class RulesetFragment extends Fragment {
                 if (a.getDevice().endsWith("_1") || a.getDevice().endsWith("_2")) {
                     dev = a.getDevice().substring(0, a.getDevice().length() - 2);
                 }
-                int r = getResources().getIdentifier(dev, "string", "nl.das.terraria2");
+                int r = getResources().getIdentifier(dev, "string", "nl.das.terrariawifi");
                 ix = spn_items.indexOf(getResources().getString(r));
             }
             spnDevice[nr].setSelection(ix);
@@ -517,20 +498,15 @@ public class RulesetFragment extends Fragment {
         wait = new WaitSpinner(requireContext());
         wait.start();
         String url = "http://" + curIPAddress + "/ruleset/" + currentRsNr;
-        Log.i("Terraria", "Execute PUT request " + url);
         Gson gson = new Gson();
         ruleset.setTerrarium(1);
         String json = gson.toJson(ruleset);
-        Log.i("Terraria", "JSON sent:");
-        Log.i("Terraria", json);
         VoidRequest req = new VoidRequest(Request.Method.PUT, url, json,
                 response -> {
-                    Log.i("Terraria", "Ruleset " + currentRsNr + " has been saved.");
                     wait.dismiss();
                 },
                 error -> {
                     wait.dismiss();
-                    Log.i("Terraria", "Error " + error.getMessage());
                     new NotificationDialog(requireActivity(), "Error", "Kontakt met Control Unit verloren.").show();
                 }
         );
@@ -562,8 +538,6 @@ public class RulesetFragment extends Fragment {
             } else {
                 field.setError("Tijdopgave is niet juist. Formaat: hh.mm");
             }
-        } else {
-            Log.i("Terraria", "No timevalue given.");
         }
         return field.getError() == null;
     }

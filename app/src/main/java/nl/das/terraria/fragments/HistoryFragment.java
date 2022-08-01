@@ -9,7 +9,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -114,7 +113,6 @@ public class HistoryFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        Log.i("Terraria", "HistoryFragment.onViewCreated() start");
         super.onViewCreated(view, savedInstanceState);
 
         curIPAddress = requireContext().getSharedPreferences("TerrariaApp", 0).getString("terrarium" + curTabNr + "_ip_address", "");
@@ -143,7 +141,6 @@ public class HistoryFragment extends Fragment {
         list.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.i("Terraria","Selected history file '" + fileList.get(position) + "'");
                 if (position > 0) {
                     wait = new WaitSpinner(requireContext());
                     wait.start();
@@ -161,16 +158,13 @@ public class HistoryFragment extends Fragment {
         });
         Button btnView = view.findViewById(R.id.his_OkButton);
         btnView.setOnClickListener(v -> {
-            Log.i("Terraria", "stop viewing history");
             getParentFragmentManager()
                     .beginTransaction()
                     .replace(R.id.layout, StateFragment.newInstance(curTabNr))
                     .commit();
         });
-        Log.i("Terraria","Chart height/width: " + chartHeight + "/" + chartWidth);
         // get the list of history files
         getHistoryFiles();
-        Log.i("Terraria", "HistoryFragment.onViewCreated() end");
     }
 
     private void getHistoryFiles() {
@@ -178,12 +172,10 @@ public class HistoryFragment extends Fragment {
         wait.start();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         String url = "http://" + curIPAddress + "/history/state";
-        Log.i("Terraria", "Execute GET request " + url);
         // Request list of history files.
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
                 response -> {
                     try {
-                        Log.i("Terraria", "Retrieved list of history files");
                         Gson gson = new Gson();
                         String[] hislst = gson.fromJson(response.toString(), new TypeToken<String[]>() {}.getType());
 //                        for (int i = 0; i < 30; i++) {
@@ -193,7 +185,6 @@ public class HistoryFragment extends Fragment {
                             fileList.add(f.replaceAll("state_", ""));
                         }
                         fileList.sort(Collections.reverseOrder());
-                        Log.i("Terraria", "Retrieved " + hislst.length + " history files");
                     } catch (JsonSyntaxException e) {
                         new NotificationDialog(requireContext(), "Error", "History files response contains errors:\n" + e.getMessage()).show();
                     }
@@ -204,9 +195,7 @@ public class HistoryFragment extends Fragment {
                         StringWriter sw = new StringWriter();
                         PrintWriter pw = new PrintWriter(sw);
                         error.printStackTrace(pw);
-                        Log.i("Terraria", "Retrieved history error:\n" + sw);
                     } else {
-                        Log.i("Terraria", "Error " + error.getMessage());
                         new NotificationDialog(requireContext(), "Error", "Kontakt met Control Unit verloren.").show();
                     }
                     wait.dismiss();
@@ -219,12 +208,10 @@ public class HistoryFragment extends Fragment {
     private void readHistoryState(String day) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         String url = "http://" + curIPAddress + "/history/state/state_" + day;
-        Log.i("Terraria", "Execute GET request " + url);
         // Request state history.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 (Response.Listener<String>) response -> {
                     try {
-                        Log.i("Terraria", "Retrieved state history");
                         xend = 0;
                         /*  0123456789012345678
                             2021-08-01 05:00:00 start
@@ -262,9 +249,7 @@ public class HistoryFragment extends Fragment {
                         StringWriter sw = new StringWriter();
                         PrintWriter pw = new PrintWriter(sw);
                         error.printStackTrace(pw);
-                        Log.i("Terraria", "Retrieved state history error:\n" + sw);
                     } else {
-                        Log.i("Terraria", "Error " + error.getMessage());
                         new NotificationDialog(requireContext(), "Error", "Kontakt met Control Unit verloren.").show();
                     }
                 }
@@ -335,12 +320,10 @@ public class HistoryFragment extends Fragment {
     private void readHistoryTemperture(String day) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         String url = "http://" + curIPAddress + "/history/temperature/temp_" + day;
-        Log.i("Terraria", "Execute GET request " + url);
         // Request state history.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 (Response.Listener<String>) response -> {
                     try {
-                        Log.i("Terraria", "Retrieved temperature history");
                         xend = 0;
                         /*
                             2021-08-01 05:00:00 r=21 t=21
@@ -377,9 +360,7 @@ public class HistoryFragment extends Fragment {
                         StringWriter sw = new StringWriter();
                         PrintWriter pw = new PrintWriter(sw);
                         error.printStackTrace(pw);
-                        Log.i("Terraria", "Retrieved temperature history error:\n" + sw);
                     } else {
-                        Log.i("Terraria", "Error " + error.getMessage());
                         new NotificationDialog(requireContext(), "Error", "Kontakt met Control Unit verloren.").show();
                     }
                     wait.dismiss();
