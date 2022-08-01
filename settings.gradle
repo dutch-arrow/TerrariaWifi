@@ -1,2 +1,2 @@
-rootProject.name = "Terraria2"
+rootProject.name = "TerrariaWifi"
 include ':app'
