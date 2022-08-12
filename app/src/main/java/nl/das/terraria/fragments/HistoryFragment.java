@@ -50,8 +50,10 @@ import java.util.Objects;
 
 import nl.das.terraria.R;
 import nl.das.terraria.RequestQueueSingleton;
+import nl.das.terraria.TerrariaApp;
 import nl.das.terraria.dialogs.NotificationDialog;
 import nl.das.terraria.dialogs.WaitSpinner;
+import nl.das.terraria.json.Device;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -64,28 +66,36 @@ public class HistoryFragment extends Fragment {
     private WaitSpinner wait;
 
     private static String curIPAddress;
-    private Spinner list;
     private LineChart chart;
-    private List<ILineDataSet> dataSets = new ArrayList<>();
-    private LineData lineData = new LineData(dataSets);
+    private final List<ILineDataSet> dataSets = new ArrayList<>();
+    private final LineData lineData = new LineData(dataSets);
 
     // map: <device, <time, on>>
-    private Map<String, Map<Integer, Boolean>> history_state = new HashMap<>();
-    private Map<Integer, Integer> history_temp = new HashMap<>();
-    private static SimpleDateFormat dtfmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-    private static SimpleDateFormat tmfmt = new SimpleDateFormat("HH:mm", Locale.US);
+    private final Map<String, Map<Integer, Boolean>> history_state = new HashMap<>();
+    private final Map<Integer, Integer> history_temp = new HashMap<>();
+    private static final SimpleDateFormat dtfmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+    private static final SimpleDateFormat tmfmt = new SimpleDateFormat("HH:mm", Locale.US);
     private long xstart;
     private int hmstart;
     private long xend;
-    private String[] devicesNl = {"lamp1", "lamp2", "lamp3", "lamp4", "uvlamp", "lamp6", "pomp", "nevel", "sproeier", "vent_in", "vent_uit", ""};
-    private String[] devicesEn = {"light1", "light2", "light3", "light4", "uvlight", "light6", "pump", "mist", "sprayer", "fan_in", "fan_out", ""};
-    private boolean[] devState = {false, false, false, false, false, false, false, false, false, false, false, false};
-    private int chartHeight;
-    private int chartWidth;
+    private final Map<String,String> devicesNl  = new HashMap<>();
+    private List<Device> devices;
+    private final int colors[] = {Color.BLACK, Color.BLUE, Color.GRAY, Color.RED, Color.GREEN, Color.MAGENTA};
+    private boolean[] devState;
     private List<String> fileList = new ArrayList<>();
 
     public HistoryFragment() {
-        // Required empty public constructor
+        devicesNl.put("light1","lamp1");
+        devicesNl.put("light2","lamp2");
+        devicesNl.put("light3","lamp3");
+        devicesNl.put("light4","lamp4");
+        devicesNl.put("uvlight","uvlamp");
+        devicesNl.put("light6","lamp6");
+        devicesNl.put("pump","pomp");
+        devicesNl.put("mist","nevel");
+        devicesNl.put("sprayer","sproeier");
+        devicesNl.put("fan_in", "vent_in");
+        devicesNl.put("fan_out", "vent_uit");
     }
 
     public static HistoryFragment newInstance(int tabnr) {
@@ -102,6 +112,8 @@ public class HistoryFragment extends Fragment {
         if (getArguments() != null) {
             curTabNr = getArguments().getInt("tabnr");
         }
+        devices = TerrariaApp.configs[curTabNr - 1].getDevices();
+        devState = new boolean[devices.size()];
     }
 
     @Override
@@ -129,10 +141,8 @@ public class HistoryFragment extends Fragment {
         chart.setDrawGridBackground(true);
         chart.setDrawMarkers(false);
         chart.getLegend().setEnabled(false);
-        chartHeight = chart.getMeasuredHeight();
-        chartWidth = chart.getMeasuredWidth();
 
-        list = view.findViewById(R.id.his_list);
+        Spinner list = view.findViewById(R.id.his_list);
         fileList = new ArrayList<>();
         fileList.add("<select day>");
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), R.layout.file_dropdown, fileList);
@@ -210,7 +220,7 @@ public class HistoryFragment extends Fragment {
         String url = "http://" + curIPAddress + "/history/state/state_" + day;
         // Request state history.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                (Response.Listener<String>) response -> {
+                response -> {
                     try {
                         xend = 0;
                         /*  0123456789012345678
@@ -244,7 +254,7 @@ public class HistoryFragment extends Fragment {
                         new NotificationDialog(requireContext(), "Error", "History state response contains errors:\n" + e.getMessage()).show();
                     }
                 },
-                (Response.ErrorListener) error -> {
+                error -> {
                     if (error.getMessage() == null) {
                         StringWriter sw = new StringWriter();
                         PrintWriter pw = new PrintWriter(sw);
@@ -266,13 +276,13 @@ public class HistoryFragment extends Fragment {
         xAxis.setAxisMinimum(hmstart);
         xAxis.setAxisMaximum((24 * 60 * 60) + hmstart);
 //        xAxis.setLabelRotationAngle(270f);
-        xAxis.setLabelCount((((int)(xend - xstart)) / 900) + 1, true); // force 11 labels
+        xAxis.setLabelCount((((int)(xend - xstart)) / 900) + 1, true);
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getAxisLabel(float value, AxisBase axis) {
                 int hr = (int)value / 3600;
                 int mn = ((int)value - (hr * 3600)) / 60;
-                return String.format("%02d:%02d", (hr >= 24 ? hr -24 : hr), mn);
+                return String.format(Locale.US, "%02d:%02d", (hr >= 24 ? hr -24 : hr), mn);
             }
         });
         // Y axis
@@ -280,7 +290,7 @@ public class HistoryFragment extends Fragment {
         YAxis yAxis = chart.getAxisLeft();
         yAxis.setTextSize(14f); // set the text size
         yAxis.setAxisMinimum(0f); // start at zero
-        yAxis.setAxisMaximum(devicesNl.length * 1.5f); // the axis maximum
+        yAxis.setAxisMaximum((devices.size() + 1) * 1.5f); // the axis maximum
         yAxis.setTextColor(Color.BLACK);
         yAxis.setValueFormatter(new ValueFormatter() {
             @Override
@@ -290,7 +300,11 @@ public class HistoryFragment extends Fragment {
                     if (v == 0) {
                         return "Temp";
                     } else {
-                        return devicesNl[(v - 3) / 3];
+                        int ix = (v - 3) / 3;
+                        if (ix < devices.size()) {
+                            return devicesNl.get(devices.get(ix).getDevice());
+                        }
+                        return "";
                     }
                 } else {
                     return "";
@@ -298,20 +312,14 @@ public class HistoryFragment extends Fragment {
             }
         });
         yAxis.setGranularity(1.5f); // interval 1.5
-        yAxis.setLabelCount(13, true); // force 12 labels
+        yAxis.setLabelCount(devices.size() + 2, true);
 
         // Constructing the datasets
-        dataSets.add(getDatasets("light1",  Color.BLACK));
-        dataSets.add(getDatasets("light2",  Color.BLUE));
-        dataSets.add(getDatasets("light3",  Color.GRAY));
-        dataSets.add(getDatasets("light4",  Color.RED));
-        dataSets.add(getDatasets("uvlight", Color.GREEN));
-        dataSets.add(getDatasets("light6",  Color.MAGENTA));
-        dataSets.add(getDatasets("pump",    Color.BLACK));
-        dataSets.add(getDatasets("sprayer", Color.GRAY));
-        dataSets.add(getDatasets("mist",    Color.BLUE));
-        dataSets.add(getDatasets("fan_in",  Color.RED));
-        dataSets.add(getDatasets("fan_out", Color.GREEN));
+        int cix = 0;
+        for (Device d :  devices) {
+            dataSets.add(getDatasets(d.getDevice(),  colors[cix++]));
+            cix = (cix == colors.length ? 0 : cix);
+        }
         chart.setData(lineData);
 
         chart.invalidate(); // refresh
@@ -411,11 +419,11 @@ public class HistoryFragment extends Fragment {
     }
 
     private int getIndex(String device) {
-        for (int i = 0; i < devicesEn.length; i++) {
-            if (devicesEn[i].equalsIgnoreCase(device)) {
+        for (int i = 0; i < devices.size(); i++) {
+            if (devices.get(i).getDevice().equalsIgnoreCase(device)) {
                 return i;
             }
         }
-        return devicesEn.length;
+        return devices.size();
     }
 }

@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ import android.widget.EditText;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
@@ -40,6 +42,7 @@ import nl.das.terraria.VoidRequest;
 import nl.das.terraria.dialogs.NotificationDialog;
 import nl.das.terraria.dialogs.WaitSpinner;
 import nl.das.terraria.json.Timer;
+import nl.das.terraria.json.Timers;
 
 public class TimersListFragment extends Fragment {
 
@@ -273,8 +276,8 @@ public class TimersListFragment extends Fragment {
             fcv.setVisibility(View.VISIBLE);
             edtTimeOn[i].setText(Utils.cvthm2string(Objects.requireNonNull(timers.get(deviceID))[i].getHourOn(), Objects.requireNonNull(timers.get(deviceID))[i].getMinuteOn()));
             edtTimeOff[i].setText(Utils.cvthm2string(Objects.requireNonNull(timers.get(deviceID))[i].getHourOff(), Objects.requireNonNull(timers.get(deviceID))[i].getMinuteOff()));
-            edtRepeat[i].setText(Objects.requireNonNull(timers.get(deviceID))[i].getRepeat() + "");
-            edtPeriod[i].setText(Objects.requireNonNull(timers.get(deviceID))[i].getPeriod() + "");
+            edtRepeat[i].setText(String.valueOf(Objects.requireNonNull(timers.get(deviceID))[i].getRepeat()));
+            edtPeriod[i].setText(String.valueOf(Objects.requireNonNull(timers.get(deviceID))[i].getPeriod()));
         }
 
     }
@@ -298,17 +301,16 @@ public class TimersListFragment extends Fragment {
         } else {
             String url = "http://" + curIPAddress + "/timers/" + deviceID;
             // Request sensor readings.
-            JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                     response1 -> {
                         Gson gson = new Gson();
                         try {
-                            Timer[] devTimers = gson.fromJson(response1.toString(), new TypeToken<Timer[]>() {
-                            }.getType());
-                            timers.put(deviceID, devTimers);
+                            Timers devTimers = gson.fromJson(response1.toString(), Timers.class);
+                            timers.put(deviceID, devTimers.getTimers());
                             updateTimers();
                             wait.dismiss();
                         } catch (JsonSyntaxException e) {
-                            new NotificationDialog(requireContext(), "Error", "Timers response contains errors:\n" + e.getMessage()).show();
+                            new NotificationDialog(requireContext(), "Error", "getTimers(): response contains errors:\n" + e.getMessage()).show();
                         }
                     },
                     error -> {
@@ -317,29 +319,31 @@ public class TimersListFragment extends Fragment {
                             PrintWriter pw = new PrintWriter(sw);
                             error.printStackTrace(pw);
                         } else {
-                            new NotificationDialog(requireContext(), "Error", "Kontakt met Control Unit verloren.").show();
+                            new NotificationDialog(requireContext(), "Error", "getTimers(): Kontakt met Control Unit verloren: " + error.getMessage()).show();
                         }
                         wait.dismiss();
                     }
             );
             // Add the request to the RequestQueue.
-            RequestQueueSingleton.getInstance(requireContext()).add(jsonArrayRequest);
+            RequestQueueSingleton.getInstance(requireContext()).add(jsonObjectRequest);
         }
     }
 
     private void saveTimers() {
         wait = new WaitSpinner(requireContext());
         wait.start();
-        String url = "http://" + curIPAddress + "/timers/" + deviceID;
+        String url = "http://" + curIPAddress + "/timers";
         Gson gson = new Gson();
-        String json = gson.toJson(timers.get(deviceID));
+        String json = "{\"timers\": " + gson.toJson(timers.get(deviceID)) + "}";
+        Log.i("Terraria","url=" + url + " json:");
+        Log.i("Terraria",json);
         VoidRequest req = new VoidRequest(Request.Method.PUT, url, json,
                 response -> {
                     wait.dismiss();
                 },
                 error -> {
                     wait.dismiss();
-                    new NotificationDialog(requireActivity(), "Error", "Kontakt met Control Unit verloren.").show();
+                    new NotificationDialog(requireActivity(), "Error", "saveTimers(): Kontakt met Control Unit verloren.").show();
                 }
         );
         // Add the request to the RequestQueue.
