@@ -127,16 +127,6 @@ public class StateFragment extends Fragment {
             getState();
         });
 
-        Button btnClock = view.findViewById(R.id.trm_st_btnClock);
-        btnClock.setOnClickListener(v -> {
-            Log.i("Terraria", "set Clock");
-            // Create an instance of the dialog fragment and show it
-            ClockDialogFragment dlgClock = ClockDialogFragment.newInstance();
-            FragmentManager fm = requireActivity().getSupportFragmentManager();
-            // SETS the target fragment for use later when sending results
-            fm.setFragmentResultListener("time", this, (requestKey, result) -> result.getString("clockValue"));
-            dlgClock.show(fm, "ClockDialogFragment");
-        });
         // walk through all device views
         int vix = 0;
         for (Device d :  TerrariaApp.configs[tabnr - 1].getDevices()) {
