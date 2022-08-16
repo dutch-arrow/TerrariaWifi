@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,7 +40,7 @@ import nl.das.terraria.json.Properties;
 
 public class TerrariaApp extends AppCompatActivity {
 
-    public static final boolean[] MOCK = {false, false, false};
+    public static final boolean[] MOCK = {false, true, true};
 
     public static int nrOfTerraria;
     public static Properties[] configs;
@@ -65,6 +66,7 @@ public class TerrariaApp extends AppCompatActivity {
         mTabTitles = new TextView[nrOfTerraria];
         configs = new Properties[nrOfTerraria];
         connected = new boolean[nrOfTerraria];
+        curTabNr = 1;
         mTabbar = findViewById(id.tabbar);
         mTabbar.setVisibility(View.GONE);
         // Get the properties from the TCU's
@@ -89,6 +91,7 @@ public class TerrariaApp extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        Log.i("TerrariaWifi","onStart()");
         boolean ok = false;
         // Check if the SharedPreferences are there and filled
         sp = getApplicationContext().getSharedPreferences("TerrariaApp", 0);
@@ -125,21 +128,56 @@ public class TerrariaApp extends AppCompatActivity {
                         .commit();
             }
         }
-        super.onStart();
     }
+
+    @Override
+    protected void onResume() {
+        Log.i("TerrariaWifi","onResume()");
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.i("TerrariaWifi","onPause()");
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.i("TerrariaWifi","onStop()");
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.i("TerrariaWifi","onDestroy()");
+        super.onDestroy();
+    }
+
     /*
     This is the onClick method of the btn_coninue.
     It will be clicked by the background thread when the properties of the TCU are read.
      */
     public void go(View view) {
+        Log.i("TerrariaWifi","go()");
         mTabbar.setVisibility(View.VISIBLE);
-        curTabNr = 1;
         mTabTitles[curTabNr - 1].setTextColor(Color.WHITE);
         curIPAddress = getApplicationContext().getSharedPreferences("TerrariaApp", 0).getString("terrarium" + curTabNr + "_ip_address", "");
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(id.layout, StateFragment.newInstance(curTabNr))
-                .commit();
+        boolean showState = true;
+        for (boolean c : connected) {
+            showState &= c;
+        }
+        if (showState) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(id.layout, StateFragment.newInstance(curTabNr))
+                    .commit();
+        } else {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(id.layout, new SettingsFragment())
+                    .commit();
+        }
     }
 
     @Override
@@ -227,7 +265,9 @@ public class TerrariaApp extends AppCompatActivity {
         nrOfTerraria = Integer.parseInt(config.getProperty("nrOfTerraria"));
         return config;
     }
+
     public void getProperties() {
+        Log.i("TerrariaWifi","getProperties()");
         Context ctx = this;
         wait = new WaitSpinner(this);
         wait.start();
@@ -243,7 +283,7 @@ public class TerrariaApp extends AppCompatActivity {
                                 new InputStreamReader(getResources().getAssets().open("properties_" + pfx + ".json")))
                                 .lines().collect(Collectors.joining("\n"));
                         configs[tcunr] = gson.fromJson(response, Properties.class);
-                    } catch (IOException e) {
+                    } catch (IOException ignored) {
                     }
                 } else {
                     try {
@@ -255,8 +295,10 @@ public class TerrariaApp extends AppCompatActivity {
                         String json = new BufferedReader(new InputStreamReader(httpConnection.getInputStream(), StandardCharsets.UTF_8))
                                 .lines().collect(Collectors.joining("\n"));
                         configs[tcunr] = new Gson().fromJson(json, Properties.class);
-//                        Log.i("Terraria", "TerrariaApp.getProperties() thread got it:\n" + json);
+                        Log.i("Terraria", "TerrariaApp.getProperties() thread got it:\n" + json);
                     } catch (Exception e) {
+                        Log.e("TerrariaWifi",e.getMessage());
+                        connected[tcunr] = false;
                         // Now tell the UI thread to show the dialog and end thread
                         runOnUiThread(() -> {
                             wait.dismiss();
@@ -275,7 +317,6 @@ public class TerrariaApp extends AppCompatActivity {
                     mTabTitles[i].setVisibility(View.VISIBLE);
                     mTabTitles[i].setText(getString(R.string.tabName, configs[i].getTcuName(), (MOCK[i] ? " (Test)" : "")));
                 }
-                curTabNr = 1;
                 btnContinue.callOnClick();
                 wait.dismiss();
             });
@@ -283,10 +324,12 @@ public class TerrariaApp extends AppCompatActivity {
     }
 
     public String isConnected(int tcunr) {
+        Log.i("TerrariaWifi","isConnected()");
         String message = "";
         // Executed in separate thread
         Runtime runtime = Runtime.getRuntime();
         String ip = sp.getString("terrarium" + (tcunr + 1) + "_ip_address", "x");
+        Log.i("TerrariaWifi","ip=" + ip);
         try {
             Process ipProcess = runtime.exec("/system/bin/ping -c 1 -w 1 " + ip);
             int exitValue = ipProcess.waitFor();
