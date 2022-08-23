@@ -16,9 +16,11 @@
 # This specific template is located at:
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
 
+image: mreichelt/android:31
+
 build:
   stage: build
   script:
-    - echo $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - ./gradlew build
   tags:
     - android
